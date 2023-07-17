@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\WebFiles.Share\WebFiles.Share.csproj" />
+      <Folder Include="Controllers\" />
     </ItemGroup>
 
 </Project>
