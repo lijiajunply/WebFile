@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EfCoreDialogsState">
+    <option name="keyValueStorage">
+      <map>
+        <entry key="Common:b57fd173-833a-4a79-886d-db6782753474:dbContext" value="WebFiles.DataModel.WebFileContext" />
+        <entry key="Common:buildConfiguration" value="Debug" />
+        <entry key="Common:f31f317c-0e4e-4c41-a0b1-2b15d07ca7d2:dbContext" value="WebFiles.WebApi.Data.WebFileContext" />
+        <entry key="Common:noBuild" value="false" />
+        <entry key="Common:outputFolder" value="Migrations" />
+        <entry key="Common:useDefaultConnection" value="true" />
+      </map>
+    </option>
+  </component>
+</project>

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebFiles.DataModel;
+namespace WebFiles.WebApi.Data;
 
-public class UserModel
+public class UserDataModel
 {
     [Key]
     public int Key { get; set; }
@@ -11,5 +11,5 @@ public class UserModel
     public string Password { get; set; }
     public string? UserImage { get; set; }
 
-    public List<FileModel> FileModels { get; set; } = new List<FileModel>();
+    public List<FileDataModel> FileModels { get; set; } = new List<FileDataModel>();
 }

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebFiles.DataModel;
+namespace WebFiles.WebApi.Data;
 
-public class FileModel
+public class FileDataModel
 {
     [Key]
     public int Key { get; set; }
