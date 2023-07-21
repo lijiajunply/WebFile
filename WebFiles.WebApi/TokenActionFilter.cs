@@ -36,7 +36,11 @@ public static class TokenHelper
             }
 
             return new UserDataModel()
-                { Password = claimPassword.Value, UserName = claimName.Value, Key = int.Parse(claimId.Value) };
+            {
+                Password = claimPassword!.Value,
+                UserName = claimName!.Value,
+                Key = int.Parse(claimId!.Value)
+            };
         }
         catch
         {
@@ -44,5 +48,6 @@ public static class TokenHelper
         }
     }
 
-    private static bool IsNull(this Claim? claim) => claim == null || !string.IsNullOrEmpty(claim.Value);
+    private static bool IsNull(this Claim? claim)
+        => claim == null || !string.IsNullOrEmpty(claim.Value);
 }

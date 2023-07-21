@@ -5,145 +5,158 @@ using WebFiles.AppModel;
 using WebFiles.WebApi.ModelOpera;
 using WebFiles.WebApi.Data;
 
-namespace WebFiles.WebApi.Controllers
+namespace WebFiles.WebApi.Controllers;
+
+[Route("[controller]/[action]")]
+[ApiController]
+public class UserController : ControllerBase
 {
-    [Route("[controller]/[action]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    private readonly WebFileContext _context;
+    private readonly JwtHelper _jwtHelper;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public UserController(WebFileContext context, JwtHelper jwtHelper, IHttpContextAccessor httpContextAccessor)
     {
-        private readonly WebFileContext _context;
-        private readonly JwtHelper _jwtHelper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        _context = context;
+        _jwtHelper = jwtHelper;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
-        public UserController(WebFileContext context, JwtHelper jwtHelper, IHttpContextAccessor httpContextAccessor)
+    #region Login
+
+    [HttpPost]
+    public async Task<ActionResult<UserAppModel>> Login([FromBody] LoginModel model)
+    {
+        if (_context.Users == null!)
         {
-            _context = context;
-            _jwtHelper = jwtHelper;
-            _httpContextAccessor = httpContextAccessor;
+            return NotFound();
         }
 
-        #region Login
+        var result =
+            await _context.Users.Include(x => x.FileModels)
+                .FirstOrDefaultAsync(x => x.UserName == model.UserName && x.Password == model.Password);
 
-        [HttpPost]
-        public async Task<ActionResult<UserAppModel>> Login(LoginModel model)
+        if (result == null) return NotFound();
+
+        return ToApp.ToUser(result);
+    }
+
+
+    [HttpPost]
+    public async Task<ActionResult<UserAppModel>> SignUp([FromBody] LoginModel model)
+    {
+        if (_context.Users == null!)
         {
-            if (_context.Users == null!)
-            {
-                return NotFound();
-            }
-
-            var result =
-                await _context.Users.Include(x => x.FileModels)
-                    .FirstOrDefaultAsync(x => x.UserName == model.UserName && x.Password == model.Password);
-
-            if (result == null) return NotFound();
-
-            return ToApp.ToUser(result);
+            return NotFound();
         }
 
+        var result =
+            await _context.Users.FirstOrDefaultAsync(x =>
+                x.UserName == model.UserName && x.Password == model.Password);
 
-        [HttpPost]
-        public async Task<ActionResult<UserAppModel>> SignUp(LoginModel model)
+        if (result != null) return NotFound();
+
+        var a = ToData.ToUser(model);
+
+        _context.Users.Add(a);
+
+        var path = Path.Combine(AppContext.BaseDirectory, "UserInfo",$"{a.Key}");
+        Directory.CreateDirectory(path);
+        Directory.CreateDirectory(Path.Combine(path,"Files"));
+        path = Path.Combine(path, "UserImage.png");
+        await System.IO.File.Create(path).DisposeAsync();
+
+        a.UserImage = path;
+        
+        await _context.SaveChangesAsync();
+        return new UserAppModel() { UserName = model.UserName };
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<string>> GetToken(LoginModel model)
+    {
+        if (_context.Users == null!)
         {
-            if (_context.Users == null!)
-            {
-                return NotFound();
-            }
-
-            var result =
-                await _context.Users.FirstOrDefaultAsync(x =>
-                    x.UserName == model.UserName && x.Password == model.Password);
-
-            if (result != null) return NotFound();
-
-            var a = ToData.ToUser(model);
-
-            _context.Users.Add(a);
-            await _context.SaveChangesAsync();
-            return new UserAppModel() { UserName = model.UserName };
+            return NotFound();
         }
 
-        [HttpPost]
-        public async Task<ActionResult<string>> GetToken(LoginModel model)
+        var result =
+            await _context.Users.FirstOrDefaultAsync(x =>
+                x.UserName == model.UserName && x.Password == model.Password);
+
+        if (result == null) return NotFound();
+
+        return _jwtHelper.GetMemberToken(result);
+    }
+
+    #endregion
+
+    #region UserOpear
+    
+    [TokenActionFilter]
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] ChangeModel model)
+    {
+        var user = _httpContextAccessor.HttpContext?.User.GetUser();
+
+        if (user == null || id != user.Key || !IsOn(user))
         {
-            if (_context.Users == null!)
-            {
-                return NotFound();
-            }
-
-            var result =
-                await _context.Users.FirstOrDefaultAsync(x =>
-                    x.UserName == model.UserName && x.Password == model.Password);
-
-            if (result == null) return NotFound();
-
-            return _jwtHelper.GetMemberToken(result);
+            return BadRequest();
         }
 
-        #endregion
+        var result =
+           await _context.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.Password == user.Password);
 
-        [TokenActionFilter]
-        [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UserDataModel userDataModel)
+        if (result is null)
+            return NotFound();
+
+        if (!string.IsNullOrEmpty(model.UserName))
+            result.UserName = model.UserName;
+        if (!string.IsNullOrEmpty(model.Password))
+            result.Password = model.Password;
+        if (!string.IsNullOrEmpty(model.UserImage))
+            result.UserImage = model.UserImage;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+    
+    [Authorize]
+    [TokenActionFilter]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var user = _httpContextAccessor.HttpContext?.User.GetUser();
+
+        if (user == null || id != user.Key || !IsOn(user))
         {
-            
-            var user = _httpContextAccessor.HttpContext?.User.GetUser();
-            
-            if (user == null || id != user.Key || id != userDataModel.Key || user.Key != userDataModel.Key)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userDataModel).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserModelExists(id))
-                    return NotFound();
-
-                throw;
-            }
-
-            return NoContent();
+            return BadRequest();
         }
 
-        [Authorize]
-        [TokenActionFilter]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        if (_context.Users == null!)
         {
-            var user = _httpContextAccessor.HttpContext?.User.GetUser();
-
-            if (user == null || id != user.Key)
-            {
-                return BadRequest();
-            }
-            
-            if (_context.Users == null!)
-            {
-                return NotFound();
-            }
-
-            var userModel = await _context.Users.FindAsync(id);
-            if (userModel == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(userModel);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NotFound();
         }
 
-        private bool UserModelExists(int id)
+        var userModel = await _context.Users.FindAsync(id);
+        if (userModel == null)
         {
-            return (_context.Users?.Any(e => e.Key == id)).GetValueOrDefault();
+            return NotFound();
         }
+
+        _context.Users.Remove(userModel);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    #endregion
+
+    private bool IsOn(UserDataModel model)
+    {
+        return _context.Users!.Any(x =>
+            x.UserName == model.UserName || x.Password == model.Password || x.Key == model.Key);
     }
 }
