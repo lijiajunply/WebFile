@@ -7,6 +7,8 @@ using WebFiles.WebApi.Data;
 
 namespace WebFiles.WebApi.Controllers;
 
+[Produces("application/json")]
+[Consumes("application/json", "multipart/form-data")]//此处为新增
 [Route("[controller]/[action]")]
 [ApiController]
 public class UserController : ControllerBase
@@ -60,14 +62,14 @@ public class UserController : ControllerBase
 
         _context.Users.Add(a);
 
-        var path = Path.Combine(AppContext.BaseDirectory, "UserInfo",$"{a.Key}");
+        var path = Path.Combine(AppContext.BaseDirectory, "UserInfo", $"{a.Key}");
         Directory.CreateDirectory(path);
-        Directory.CreateDirectory(Path.Combine(path,"Files"));
+        Directory.CreateDirectory(Path.Combine(path, "Files"));
         path = Path.Combine(path, "UserImage.png");
         await System.IO.File.Create(path).DisposeAsync();
 
         a.UserImage = path;
-        
+
         await _context.SaveChangesAsync();
         return new UserAppModel() { UserName = model.UserName };
     }
@@ -92,7 +94,7 @@ public class UserController : ControllerBase
     #endregion
 
     #region UserOpear
-    
+
     [TokenActionFilter]
     [Authorize]
     [HttpPut("{id}")]
@@ -106,7 +108,7 @@ public class UserController : ControllerBase
         }
 
         var result =
-           await _context.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.Password == user.Password);
+            await _context.Users.FirstOrDefaultAsync(x => x.UserName == user.UserName && x.Password == user.Password);
 
         if (result is null)
             return NotFound();
@@ -122,7 +124,7 @@ public class UserController : ControllerBase
 
         return NoContent();
     }
-    
+
     [Authorize]
     [TokenActionFilter]
     [HttpDelete("{id}")]
@@ -150,6 +152,26 @@ public class UserController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+
+    [HttpGet("{fileName}")]
+    public IActionResult DownloadFile(string fileName)
+    {
+        var user = _httpContextAccessor.HttpContext?.User.GetUser();
+        if (user == null) return NotFound();
+        Stream stream = System.IO.File.OpenRead($"/UserInfo/{user.UserName}{user.Key}/{fileName}");
+        return new FileStreamResult(stream, "application/octet-stream") { FileDownloadName = fileName };
+    }
+
+    [HttpPost("Upload")]
+    public async Task<ActionResult> Upload(IFormFile file)
+    {
+        var user = _httpContextAccessor.HttpContext?.User.GetUser();
+        if (user == null) return NotFound();
+        var s = System.IO.File.Create($"/UserInfo/{user.UserName}{user.Key}/{file.FileName}");
+        await file.CopyToAsync(s);
+        return Ok();
     }
 
     #endregion
