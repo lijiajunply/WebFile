@@ -1,0 +1,55 @@
+﻿@page "/Account/Signup"
+@using WebFile.BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<WebFileContext> DbFactory
+@inject NavigationManager navigation
+@inject AuthenticationStateProvider authStateProvider
+@inject MessageService MessageService
+
+<Row ItemsPerRow="ItemsPerRow.One">
+    <Card IsShadow="true" IsCenter="true">
+        <BodyTemplate>
+            <h2>注册</h2>
+            <ValidateForm OnValidSubmit="@Done" Model="@Model">
+                <Row ItemsPerRow="ItemsPerRow.One">
+                    <FloatingLabel PlaceHolder="Name" DisplayText="账号" IsGroupBox="true" @bind-Value="@Model.UserName" TValue="string"/>
+                    <FloatingLabel PlaceHolder="Password" DisplayText="密码" IsGroupBox="true" TValue="string" @bind-Value="@Model.Password" type="password"/>
+                    <Button style="width: 100%"
+                            IsAsync="true" ButtonType="ButtonType.Submit"
+                            Color="Color.Primary" Icon="oi oi-account-login" Text="登录">
+                    </Button>
+                    <Divider/>
+                </Row>
+            </ValidateForm>
+        </BodyTemplate>
+    </Card>
+</Row>
+
+@code {
+
+    public UserModel Model { get; set; } = new();
+
+    private async Task Done(EditContext arg)
+    {
+        if (string.IsNullOrEmpty(Model.UserName) || string.IsNullOrEmpty(Model.Password))
+        {
+            await MessageService.Show(new MessageOption() { Content = "没数据" });
+            return;
+        }
+
+        await using var context = await DbFactory.CreateDbContextAsync();
+
+        if (await context.Users.AnyAsync(x => x.UserName == Model.UserName))
+        {
+            await MessageService.Show(new MessageOption() { Content = "有重名，请更改您的用户名" });
+            return;
+        }
+        context.Users.Add(Model);
+        await context.SaveChangesAsync();
+
+        var provider = (Provider)authStateProvider;
+        await provider.UpdateAuthState(Model);
+        navigation.NavigateTo("", true);
+    }
+
+}

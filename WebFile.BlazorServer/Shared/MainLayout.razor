@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<PageTitle>WebFile</PageTitle>
+<PageTitle>WebFile —— 一个云文件管理储存系统</PageTitle>
 
 <div class="page">
     <div class="sidebar">
@@ -9,7 +9,24 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <Logout ImageUrl="Argo.png" DisplayName="@context.User.Identity!.Name" UserName="@context.User.Identity!.Name">
+                        <LinkTemplate>
+                            <a href=""><i class="fa-solid fa-suitcase"></i>个人中心</a>
+                            <a href="/Account/Setting"><i class="fa-solid fa-cog"></i>设置</a>
+                            <LogoutLink/>
+                        </LinkTemplate>
+                    </Logout>
+                </Authorized>
+                <Authorizing>
+                    <p>正在登录中</p>
+                </Authorizing>
+                <NotAuthorized>
+
+                </NotAuthorized>
+            </AuthorizeView>
+
         </div>
 
         <article class="content px-4">

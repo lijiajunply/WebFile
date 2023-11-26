@@ -1,3 +1,63 @@
 ﻿@page "/"
+@using WebFile.BlazorServer.Data
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<WebFileContext> DbFactory
 
-<PageTitle>Index</PageTitle>
+<PageTitle>@(IsAuthenticated ? $"{User.UserName} : 个人中心" : "主页")</PageTitle>
+
+
+@if (IsAuthenticated)
+{
+    <h2>欢迎! @User.UserName</h2>
+    <Row ItemsPerRow="ItemsPerRow.Six" ColSpan="4">
+
+    </Row>
+}
+else
+{
+    <h1>WebFile</h1>
+    <p>WebFile是一个云文件管理储存系统，您只要注册、登录账号即可</p>
+    <NavLink class="nav-link" href="/Account/Login" Match="NavLinkMatch.All">
+        <span class="oi oi-home" aria-hidden="true"></span> Home
+    </NavLink>
+}
+
+
+@code
+{
+    private bool IsAuthenticated { get; set; }
+    public UserModel User { get; set; } = new();
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var user = authState.User;
+            IsAuthenticated = user.Identity is not null && user.Identity.IsAuthenticated;
+            if (IsAuthenticated)
+            {
+                var name = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+                var password = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password))
+                {
+                    IsAuthenticated = false;
+                    return;
+                }
+                await using var context = await DbFactory.CreateDbContextAsync();
+                var userModel = await context.Users.FirstOrDefaultAsync(x => x.UserName == name && x.Password == password);
+                if (userModel == null)
+                {
+                    IsAuthenticated = false;
+                    return;
+                }
+                User = userModel;
+            }
+        }
+    }
+}
