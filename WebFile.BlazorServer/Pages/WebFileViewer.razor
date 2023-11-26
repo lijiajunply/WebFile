@@ -1,0 +1,117 @@
+﻿@page "/WebFileView/{Text?}"
+@using WebFile.BlazorServer.Data
+@using Microsoft.EntityFrameworkCore
+@using Path = System.IO.Path
+@inject IDbContextFactory<WebFileContext> DbContext
+
+@if (!string.IsNullOrEmpty(Model.Path))
+{
+    @if (Path.GetExtension(Model.Path) == ".pdf")
+    {
+        <PdfReader FileName="@Model.GetUrl()"/>
+    }
+    else if (Path.GetExtension(Model.Path) == ".docx") // libgdiplus 
+    {
+        <FileViewer Filename="@Model.GetUrl()" IsExcel="false"/>
+    }
+    else if (Path.GetExtension(Model.Path) == ".xlsx")
+    {
+        <FileViewer Filename="@Model.GetUrl()" IsExcel="true"/>
+    }
+    else if (IsCode)
+    {
+        <Select TValue="string" @bind-Value="@Theme" ShowLabel="true" DisplayText="Theme">
+            <Options>
+                <SelectOption Text="Visual Studio" Value="vs"></SelectOption>
+                <SelectOption Text="Visual Studio Dark" Value="vs-dark"></SelectOption>
+                <SelectOption Text="High Contrast Dark" Value="hc-black"></SelectOption>
+            </Options>
+        </Select>
+        <CodeEditor Value="@CodeContext" Language="@ExtToLang()" Theme="@Theme"/>
+    }
+    else
+    {
+        
+    }
+}
+
+
+
+@code {
+
+    [Parameter]
+    public string? Text { get; set; }
+
+    private bool IsCode { get; set; }
+    private FileModel Model { get; set; } = new();
+    private string? CodeContext { get; set; }
+    private string? CodeExtension { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await using var context = await DbContext.CreateDbContextAsync();
+        var model = await context.FileModel.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == Text);
+        if (model == null) return;
+        Model = model;
+
+        var ext = Path.GetExtension(Model.Path);
+        IsCode = Extensions.Any(x => "." + x == ext);
+        if (IsCode)
+        {
+            CodeExtension = ext;
+            var reader = new StreamReader(new FileStream(FileModel.GetUrl(Model.Path), FileMode.Open));
+            CodeContext = await reader.ReadToEndAsync();
+            reader.Dispose();
+        }
+    }
+
+
+    private static string[] Extensions
+        => new[]
+        {
+            "bat", "sh", "c", "cpp", "hpp", "h", "hxx", "go", "rs", "rust", "mm", "swift", "cs", "fs", "vb", "vba",
+            "java", "jsp", "kt", "dart", "groovy", "lua", "js", "ts", "scss", "css", "vue", "html", "py", "py2", "py3",
+            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg",
+        };
+
+    private string ExtToLang()
+    {
+        switch (CodeExtension)
+        {
+            case "bat":
+            case "sh":
+                return "shell";
+            case "h":
+                return "c";
+            case "hpp":
+                return "cpp";
+            case "rs":
+                return "rust";
+            case "cs":
+                return "csharp";
+            case "fs":
+                return "fsharp";
+            case "kt":
+                return "kotlin";
+            case "js":
+                return "javascript";
+            case "ts":
+                return "typescript";
+            case "py":
+            case "py3":
+                return "python";
+            case "py2":
+                return "python2";
+            case "jl":
+                return "julia";
+            case "axaml":
+                return "xaml";
+            default:
+                return CodeExtension ?? "";
+        }
+    }
+
+    public string Theme { get; set; } = "vs-dark";
+
+}

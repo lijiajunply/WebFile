@@ -12,4 +12,6 @@ public class UserModel
     
     [Required(ErrorMessage = "密码出错")]
     public string Password { get; set; }
+
+    public List<FileModel> Files { get; set; } = new();
 }

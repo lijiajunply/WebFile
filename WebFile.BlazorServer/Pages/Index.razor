@@ -3,6 +3,8 @@
 @using System.Security.Claims
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<WebFileContext> DbFactory
+@inject ToastService ToastService
+@inject IWebHostEnvironment WebHostEnvironment
 
 <PageTitle>@(IsAuthenticated ? $"{User.UserName} : 个人中心" : "主页")</PageTitle>
 
@@ -10,9 +12,25 @@
 @if (IsAuthenticated)
 {
     <h2>欢迎! @User.UserName</h2>
-    <Row ItemsPerRow="ItemsPerRow.Six" ColSpan="4">
-
+    <Divider/>
+    <Row ItemsPerRow="ItemsPerRow.Six" ColSpan="4" RowType="RowType.Inline">
+        @foreach (var item in User.Files)
+        {
+            <a href="@($"/WebFileView/{item.Id}")">
+                <Card IsShadow="true">
+                    <BodyTemplate>
+                        <FileIcon Extension="@Path.GetExtension(item.Path)"/>
+                        <p>@Path.GetFileNameWithoutExtension(item.Path)</p>
+                    </BodyTemplate>
+                </Card>
+            </a>
+        }
     </Row>
+    <ButtonUpload TValue="string" OnChange="@OnClickToUploadNoUploadList"
+                  ShowUploadFileList="false" BrowserButtonText="Upload"
+                  BrowserButtonIcon="fa-solid fa-cloud-arrow-up"
+                  class="mt-3">
+    </ButtonUpload>
 }
 else
 {
@@ -27,7 +45,7 @@ else
 @code
 {
     private bool IsAuthenticated { get; set; }
-    public UserModel User { get; set; } = new();
+    private UserModel User { get; set; } = new();
 
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
@@ -50,7 +68,7 @@ else
                     return;
                 }
                 await using var context = await DbFactory.CreateDbContextAsync();
-                var userModel = await context.Users.FirstOrDefaultAsync(x => x.UserName == name && x.Password == password);
+                var userModel = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.UserName == name && x.Password == password);
                 if (userModel == null)
                 {
                     IsAuthenticated = false;
@@ -59,5 +77,40 @@ else
                 User = userModel;
             }
         }
+    }
+
+    private async Task OnClickToUploadNoUploadList(UploadFile arg)
+    {
+        var filePath = WebHostEnvironment.WebRootPath + "\\UserFiles";
+        if (!Directory.Exists(filePath))
+        {
+            Directory.CreateDirectory(filePath);
+        }
+
+        var fileName = $"{User.UserName}/{DateTime.Now:d}/{arg.OriginFileName}";
+        var saveFilePath = Path.Combine(filePath, fileName);
+
+        var ret = await arg.SaveToFileAsync(saveFilePath, 1012 * 1024, new CancellationTokenSource().Token);
+
+        if (ret)
+        {
+            await using var context = await DbFactory.CreateDbContextAsync();
+
+            var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(User));
+            if (user == null)
+            {
+                await ToastService.Error("上传文件", $"保存文件失败 {arg.OriginFileName}");
+                return;
+            }
+
+            user.Files.Add(new FileModel() { Path = fileName ,Id = $"{User.UserName}{DateTime.Now:yyyy-M-d}{arg.OriginFileName}"});
+            await context.SaveChangesAsync();
+            await ToastService.Success("上传文件成功");
+            User = user;
+            StateHasChanged();
+            return;
+        }
+
+        await ToastService.Error("上传文件", $"保存文件失败 {arg.OriginFileName}");
     }
 }

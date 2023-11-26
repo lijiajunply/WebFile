@@ -8,29 +8,38 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="BootstrapBlazor" Version="8.0.3" />
-      <PackageReference Include="BootstrapBlazor.FontAwesome" Version="8.0.0" />
+        <PackageReference Include="BootstrapBlazor" Version="8.0.3"/>
+        <PackageReference Include="BootstrapBlazor.CodeEditor" Version="8.0.0" />
+        <PackageReference Include="BootstrapBlazor.FileViewer" Version="8.0.0"/>
+        <PackageReference Include="BootstrapBlazor.FontAwesome" Version="8.0.0"/>
+        <PackageReference Include="BootstrapBlazor.PdfReader" Version="8.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.14">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.14" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.14"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.14">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.5" />
+        <PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.5"/>
     </ItemGroup>
 
     <ItemGroup>
-      <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
-      <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+        <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css"/>
+        <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map"/>
+        <_ContentIncludedByDefault Remove="wwwroot\UserFiles\李嘉俊\2023\11\26\社团2021年统共数据.pdf.pdf" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="wwwroot\UserFiles\"/>
+        <RuntimeHostConfigurationOption Include="System.Drawing.EnableUnixSupport" Value="true"/>
     </ItemGroup>
 
 </Project>
