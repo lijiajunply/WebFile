@@ -1,10 +1,21 @@
 ﻿@page "/Account/Logout"
-
+@using WebFile.BlazorServer.Data
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authStateProvider
+@inject MessageService MessageService
 
 @code {
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        var provider = (Provider)authStateProvider;
+        await provider.UpdateAuthState(null);
+        await MessageService.Show(new MessageOption()
+        {
+            Content = "您已注销",
+            Icon = "fa-solid fa-circle-info"
+        });
+        NavigationManager.NavigateTo("");
     }
 
 }

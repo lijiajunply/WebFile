@@ -6,6 +6,7 @@ namespace WebFile.BlazorServer.Data;
 public class FileModel
 {
     public string Path { get; set; }
+    public string Url { get; set; } = "";
 
     public UserModel Owner { get; set; }
 

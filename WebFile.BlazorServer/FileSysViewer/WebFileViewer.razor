@@ -10,7 +10,7 @@
     {
         <PdfReader FileName="@Model.GetUrl()"/>
     }
-    else if (Path.GetExtension(Model.Path) == ".docx") // libgdiplus 
+    else if (Path.GetExtension(Model.Path) == ".docx")
     {
         <FileViewer Filename="@Model.GetUrl()" IsExcel="false"/>
     }
@@ -20,18 +20,19 @@
     }
     else if (IsCode)
     {
-        <Select TValue="string" @bind-Value="@Theme" ShowLabel="true" DisplayText="Theme">
+        <Select TValue="string" @bind-Value="@Theme" ShowLabel="true">
             <Options>
                 <SelectOption Text="Visual Studio" Value="vs"></SelectOption>
                 <SelectOption Text="Visual Studio Dark" Value="vs-dark"></SelectOption>
                 <SelectOption Text="High Contrast Dark" Value="hc-black"></SelectOption>
             </Options>
         </Select>
-        <CodeEditor Value="@CodeContext" Language="@ExtToLang()" Theme="@Theme"/>
+        <Divider/>
+        <CodeEditor Value="@CodeContext" Language="@Lang" Theme="@Theme"/>
     }
     else
     {
-        
+        <p>该文件目前还无法预览 <a href="">返回主页</a></p>
     }
 }
 
@@ -42,6 +43,7 @@
     [Parameter]
     public string? Text { get; set; }
 
+    private string Lang { get; set; } = "csharp";
     private bool IsCode { get; set; }
     private FileModel Model { get; set; } = new();
     private string? CodeContext { get; set; }
@@ -49,6 +51,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (string.IsNullOrEmpty(Text))
+        {
+        }
         await base.OnInitializedAsync();
         await using var context = await DbContext.CreateDbContextAsync();
         var model = await context.FileModel.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == Text);
@@ -63,6 +68,7 @@
             var reader = new StreamReader(new FileStream(FileModel.GetUrl(Model.Path), FileMode.Open));
             CodeContext = await reader.ReadToEndAsync();
             reader.Dispose();
+            Lang = ExtToLang();
         }
     }
 
@@ -72,7 +78,7 @@
         {
             "bat", "sh", "c", "cpp", "hpp", "h", "hxx", "go", "rs", "rust", "mm", "swift", "cs", "fs", "vb", "vba",
             "java", "jsp", "kt", "dart", "groovy", "lua", "js", "ts", "scss", "css", "vue", "html", "py", "py2", "py3",
-            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg",
+            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg", "razor", "cshtml"
         };
 
     private string ExtToLang()

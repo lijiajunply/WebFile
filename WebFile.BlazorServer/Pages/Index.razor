@@ -1,116 +1,61 @@
 ﻿@page "/"
-@using WebFile.BlazorServer.Data
-@using System.Security.Claims
-@using Microsoft.EntityFrameworkCore
-@inject IDbContextFactory<WebFileContext> DbFactory
-@inject ToastService ToastService
-@inject IWebHostEnvironment WebHostEnvironment
+@using Row = BootstrapBlazor.Components.Row
 
 <PageTitle>@(IsAuthenticated ? $"{User.UserName} : 个人中心" : "主页")</PageTitle>
-
 
 @if (IsAuthenticated)
 {
     <h2>欢迎! @User.UserName</h2>
     <Divider/>
-    <Row ItemsPerRow="ItemsPerRow.Six" ColSpan="4" RowType="RowType.Inline">
-        @foreach (var item in User.Files)
+    <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
+        @foreach (var item in FolderModels)
         {
-            <a href="@($"/WebFileView/{item.Id}")">
-                <Card IsShadow="true">
-                    <BodyTemplate>
-                        <FileIcon Extension="@Path.GetExtension(item.Path)"/>
-                        <p>@Path.GetFileNameWithoutExtension(item.Path)</p>
-                    </BodyTemplate>
-                </Card>
+            <a href="@ToUrl(item)">
+                <ContextMenuZone>
+                    <ContextMenuTrigger>
+                        <Card IsShadow="true" class="item">
+                            <BodyTemplate>
+                                <FileIcon class="custom-icon" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)"/>
+                                <h6>@Path.GetFileNameWithoutExtension(item.Path)</h6>
+                            </BodyTemplate>
+                        </Card>
+                    </ContextMenuTrigger>
+                    <ContextMenu>
+                        <ContextMenuItem Icon="fa-solid fa-file" Text="打开" OnClick="@((_, _) => { NavigationManager.NavigateTo($"/WebFileView/{item.Id}");return Task.CompletedTask;})"/>
+                        <ContextMenuItem Icon="fa-solid fa-trash" Text="删除" OnClick="@(async (_, _) => await OnDelete(item))"/>
+                        <ContextMenuItem Icon="fa-solid fa-cloud-arrow-down" Text="下载" OnClick="@(async (_, _) => await OnDownload(item))"/>
+                    </ContextMenu>
+                </ContextMenuZone>
             </a>
         }
     </Row>
-    <ButtonUpload TValue="string" OnChange="@OnClickToUploadNoUploadList"
-                  ShowUploadFileList="false" BrowserButtonText="Upload"
-                  BrowserButtonIcon="fa-solid fa-cloud-arrow-up"
-                  class="mt-3">
-    </ButtonUpload>
+
+    <SlideButton Icon="fa-solid fa-plus" Text="上传">
+        <BodyTemplate>
+            <ButtonUpload TValue="string" OnChange="@OnUploadFile"
+                          ShowUploadFileList="false" BrowserButtonText="上传文件"
+                          BrowserButtonIcon="fa-solid fa-cloud-arrow-up" BrowserButtonClass="SlideItem btn-primary">
+            </ButtonUpload>
+            <Button Icon="fa-solid fa-folder" Text="添加新文件夹" OnClick="@OnAddFolder" class="SlideItem"></Button>
+        </BodyTemplate>
+    </SlideButton>
 }
 else
 {
     <h1>WebFile</h1>
     <p>WebFile是一个云文件管理储存系统，您只要注册、登录账号即可</p>
     <NavLink class="nav-link" href="/Account/Login" Match="NavLinkMatch.All">
-        <span class="oi oi-home" aria-hidden="true"></span> Home
+        <span class="fa-solid fa-house" aria-hidden="true"></span> Home
     </NavLink>
 }
 
-
-@code
-{
-    private bool IsAuthenticated { get; set; }
-    private UserModel User { get; set; } = new();
-
-    [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        if (authenticationState is not null)
-        {
-            var authState = await authenticationState;
-            var user = authState.User;
-            IsAuthenticated = user.Identity is not null && user.Identity.IsAuthenticated;
-            if (IsAuthenticated)
-            {
-                var name = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
-                var password = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password))
-                {
-                    IsAuthenticated = false;
-                    return;
-                }
-                await using var context = await DbFactory.CreateDbContextAsync();
-                var userModel = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.UserName == name && x.Password == password);
-                if (userModel == null)
-                {
-                    IsAuthenticated = false;
-                    return;
-                }
-                User = userModel;
-            }
-        }
+<style>
+    .item{
+        height: 200px;
+        width: 200px;
     }
-
-    private async Task OnClickToUploadNoUploadList(UploadFile arg)
-    {
-        var filePath = WebHostEnvironment.WebRootPath + "\\UserFiles";
-        if (!Directory.Exists(filePath))
-        {
-            Directory.CreateDirectory(filePath);
-        }
-
-        var fileName = $"{User.UserName}/{DateTime.Now:d}/{arg.OriginFileName}";
-        var saveFilePath = Path.Combine(filePath, fileName);
-
-        var ret = await arg.SaveToFileAsync(saveFilePath, 1012 * 1024, new CancellationTokenSource().Token);
-
-        if (ret)
-        {
-            await using var context = await DbFactory.CreateDbContextAsync();
-
-            var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(User));
-            if (user == null)
-            {
-                await ToastService.Error("上传文件", $"保存文件失败 {arg.OriginFileName}");
-                return;
-            }
-
-            user.Files.Add(new FileModel() { Path = fileName ,Id = $"{User.UserName}{DateTime.Now:yyyy-M-d}{arg.OriginFileName}"});
-            await context.SaveChangesAsync();
-            await ToastService.Success("上传文件成功");
-            User = user;
-            StateHasChanged();
-            return;
-        }
-
-        await ToastService.Error("上传文件", $"保存文件失败 {arg.OriginFileName}");
+    .SlideItem{
+        width: 100%;
+        margin-bottom: 1px;
     }
-}
+</style>
