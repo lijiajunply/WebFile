@@ -1,12 +1,8 @@
-﻿@page "/"
-@using Row = BootstrapBlazor.Components.Row
+﻿@page "/FolderView/{Text?}"
 
-<PageTitle>@(IsAuthenticated ? $"{User.UserName} : 个人中心" : "主页")</PageTitle>
 
 @if (IsAuthenticated)
 {
-    <h2>欢迎! @User.UserName</h2>
-    <Divider/>
     <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
         @foreach (var item in FolderModels)
         {
@@ -42,11 +38,7 @@
 }
 else
 {
-    <h1>WebFile</h1>
-    <p>WebFile是一个云文件管理储存系统，您只要注册、登录账号即可</p>
-    <NavLink class="nav-link" href="/Account/Login" Match="NavLinkMatch.All">
-        <span class="fa-solid fa-house" aria-hidden="true"></span> Home
-    </NavLink>
+    <p>无数据 <a href="">返回主页</a></p>
 }
 
 <style>

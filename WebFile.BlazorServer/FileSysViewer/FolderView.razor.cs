@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using WebFile.BlazorServer.Data;
+using WebFile.BlazorServer.Pages;
 
-namespace WebFile.BlazorServer.Pages;
+namespace WebFile.BlazorServer.FileSysViewer;
 
-public sealed partial class Index
+public sealed partial class FolderView
 {
+    [Parameter] public string? Text { get; set; }
     [Inject] [NotNull] public IDbContextFactory<WebFileContext>? DbFactory { get; set; }
     [Inject] [NotNull] public ToastService? ToastService { get; set; }
     [Inject] [NotNull] public IWebHostEnvironment? WebHostEnvironment { get; set; }
@@ -17,27 +19,29 @@ public sealed partial class Index
     [Inject] [NotNull] public DialogService? DialogService { get; set; }
     [Inject] [NotNull] public AuthenticationStateProvider? AuthStateProvider { get; set; }
 
-    private bool IsAuthenticated { get; set; }
     private UserModel User { get; set; } = new();
+    private bool IsAuthenticated { get; set; }
     private List<FolderModel> FolderModels { get; set; } = new();
+    private FolderModel Model = new();
+    private string Url { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         var claims = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
         var user = claims.ToUser();
+        if (user == null) return;
 
-        if (user == null)
-            return;
-        
         await using var context = await DbFactory.CreateDbContextAsync();
-        var userModel = await context.Users.Include(x => x.Files)
-            .FirstOrDefaultAsync(x => x.Equals(user));
-        if (userModel == null) return;
-        
-        IsAuthenticated = true;
+        var userModel = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(user));
+        var folder = userModel?.Files.FirstOrDefault(x => x.Id == Text);
+        if (folder == null) return;
+
+        FolderModels = userModel!.GetFolder(folder.Path);
+        Url = folder.Path;
         User = user;
-        FolderModels = userModel.GetFolder();
+        Model = folder.ToFolder();
+        IsAuthenticated = true;
     }
 
     private async Task OnUploadFile(UploadFile arg)
@@ -62,7 +66,7 @@ public sealed partial class Index
         if (await arg.SaveToFileAsync(saveFilePath, 1012 * 1024, new CancellationTokenSource().Token))
         {
             var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{arg.OriginFileName}".HashEncryption().Replace("/", "-");
-            user.Files.Add(new FileModel() { Path = fileName, Id = pwd });
+            user.Files.Add(new FileModel() { Path = fileName, Id = pwd, Url = Url });
             await context.SaveChangesAsync();
             await ToastService.Success("上传文件成功");
             FolderModels = user.GetFolder();
@@ -131,7 +135,7 @@ public sealed partial class Index
                 }
 
                 var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{path}".HashEncryption().Replace("/", "-");
-                user.Files.Add(new FileModel() { Path = path, Id = pwd, IsFolder = true });
+                user.Files.Add(new FileModel() { Path = path, Id = pwd, Url = Url, IsFolder = true });
                 await context.SaveChangesAsync();
                 await ToastService.Success("添加文件夹成功");
                 FolderModels = user.GetFolder();
@@ -148,10 +152,4 @@ public sealed partial class Index
         NavigationManager.NavigateTo(model.ToUrl());
         return Task.CompletedTask;
     }
-}
-
-public class FolderNameModel
-{
-    public string Name { get; set; }
-    public override string ToString() => Name;
 }

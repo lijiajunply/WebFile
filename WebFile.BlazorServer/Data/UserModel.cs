@@ -16,16 +16,17 @@ public class UserModel
 
     public List<FolderModel> GetFolder(string url = "")
         => Files.Where(x => x.Url == url)
-            .Select(x => new FolderModel() { Path = x.Path, Url = url, Id = x.Id }).ToList();
-}
+            .Select(x => x.ToFolder()).ToList();
 
-public class FolderModel
-{
-    public string Path { get; set; }
-    public string Url { get; set; }
-    public string Id { get; set; }
-    public Stream GetStream(string root)
-        => new FileStream($@"{root}\UserFiles\{Path}",FileMode.Open);
+    public override bool Equals(object? obj)
+    {
+        if (obj is not UserModel user) return false;
+        return user.UserName == UserName && user.Password == Password;
+    }
 
-    public bool IsFolder() => string.IsNullOrEmpty(Path);
+    // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+    public override int GetHashCode() => base.GetHashCode();
+
+    protected bool Equals(UserModel other)
+        => UserName == other.UserName && Password == other.Password && Files.Equals(other.Files);
 }

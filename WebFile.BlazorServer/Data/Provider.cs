@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
@@ -59,4 +61,19 @@ public class Provider : AuthenticationStateProvider
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
     }
+}
+
+public static class ProviderStatic
+{
+    public static UserModel? ToUser(this ClaimsPrincipal claims)
+    {
+        if (claims.Identity is null || !claims.Identity.IsAuthenticated) return default;
+        var name = claims.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+        var password = claims.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password)) return default;
+        return new UserModel() { UserName = name, Password = password };
+    }
+    
+    public static string HashEncryption(this string str)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 }
