@@ -1,6 +1,7 @@
 ﻿@page "/FileView/{Text?}"
-@using WebFile.BlazorServer.Data
+@using WebFile.Share.Data;
 @using Microsoft.EntityFrameworkCore
+@using WebFile.BlazorServer.Providers
 @using Path = System.IO.Path
 @inject IDbContextFactory<WebFileContext> DbContext
 @inject NavigationManager NavigationManager
@@ -79,7 +80,7 @@ else
             NavigationManager.NavigateTo("");
             return;
         }
-
+        
         var claims = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
         var user = claims.ToUser();
 

@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using OpenXmlPowerTools;
 
-namespace WebFile.BlazorServer.Data;
+namespace WebFile.Share.Data;
 
 public class FileModel
 {

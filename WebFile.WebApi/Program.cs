@@ -1,47 +1,45 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.WebEncoders;
+using Microsoft.IdentityModel.Tokens;
 using WebFile.Share.Data;
-using WebFile.BlazorServer.Providers;
+using WebFile.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-
 // Add services to the container.
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services.AddBootstrapBlazor();
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ProtectedSessionStorage>();
-// builder.Services.AddScoped<AuthenticationStateProvider, CookiesProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider, Provider>();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddOptions();
 builder.Services.AddAuthorizationCore();
-builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options => { options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; })
+    .AddJwtBearer(options =>
     {
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
-    .AddCookie(options =>
-    {
-        options.SlidingExpiration = false;
-        options.LoginPath = "/Login";
-        options.LogoutPath = "/Login";
-        options.Cookie.Name = ".iOSClub.Website.Cookie";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = false, //是否验证Issuer
+            ValidateAudience = false, //是否验证Audience
+            ValidateIssuerSigningKey = true, //是否验证SecurityKey
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)), //SecurityKey
+            ValidateLifetime = true, //是否验证失效时间
+            ClockSkew = TimeSpan.FromSeconds(30), //过期时间容错值，解决服务器端时间不同步问题（秒）
+            RequireExpirationTime = true,
+        };
     });
+
+builder.Services.AddSingleton(new JwtHelper(configuration));
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddScoped<TokenActionFilter>();
 
 builder.Services.Configure<HubOptions>(option => option.MaximumReceiveMessageSize = null);
 
@@ -63,12 +61,11 @@ builder.Services.Configure<WebEncoderOptions>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 using (var scope = app.Services.CreateScope())
@@ -92,10 +89,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();

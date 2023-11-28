@@ -1,6 +1,7 @@
 ﻿@page "/Account/Signup"
-@using WebFile.BlazorServer.Data
+@using WebFile.Share.Data;
 @using Microsoft.EntityFrameworkCore
+@using WebFile.BlazorServer.Providers
 @inject IDbContextFactory<WebFileContext> DbFactory
 @inject NavigationManager navigation
 @inject AuthenticationStateProvider authStateProvider

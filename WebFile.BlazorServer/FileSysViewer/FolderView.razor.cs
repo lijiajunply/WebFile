@@ -3,8 +3,9 @@ using BootstrapBlazor.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
-using WebFile.BlazorServer.Data;
+using WebFile.Share.Data;
 using WebFile.BlazorServer.Pages;
+using WebFile.BlazorServer.Providers;
 
 namespace WebFile.BlazorServer.FileSysViewer;
 

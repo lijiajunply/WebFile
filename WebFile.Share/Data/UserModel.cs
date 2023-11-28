@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebFile.BlazorServer.Data;
+namespace WebFile.Share.Data;
 
 public class UserModel
 {

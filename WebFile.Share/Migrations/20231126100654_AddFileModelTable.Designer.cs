@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebFile.BlazorServer.Data;
+using WebFile.Share.Data;
 
 #nullable disable
 
 namespace WebFile.BlazorServer.Migrations
 {
     [DbContext(typeof(WebFileContext))]
-    [Migration("20231126092021_AddFileList")]
-    partial class AddFileList
+    [Migration("20231126100654_AddFileModelTable")]
+    partial class AddFileModelTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

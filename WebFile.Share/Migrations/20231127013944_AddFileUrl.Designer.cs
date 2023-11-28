@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebFile.BlazorServer.Data;
+using WebFile.Share.Data;
 
 #nullable disable
 
 namespace WebFile.BlazorServer.Migrations
 {
     [DbContext(typeof(WebFileContext))]
-    [Migration("20231126104036_AddFileId")]
-    partial class AddFileId
+    [Migration("20231127013944_AddFileUrl")]
+    partial class AddFileUrl
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,6 +29,10 @@ namespace WebFile.BlazorServer.Migrations
                         .HasColumnType("varchar(256)");
 
                     b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

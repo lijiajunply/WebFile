@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebFile.BlazorServer.Data;
+using WebFile.Share.Data;
 
 #nullable disable
 
 namespace WebFile.BlazorServer.Migrations
 {
     [DbContext(typeof(WebFileContext))]
-    [Migration("20231126100654_AddFileModelTable")]
-    partial class AddFileModelTable
+    [Migration("20231127095638_AddIsFolder")]
+    partial class AddIsFolder
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,15 +21,27 @@ namespace WebFile.BlazorServer.Migrations
 
             modelBuilder.Entity("WebFile.BlazorServer.Data.FileModel", b =>
                 {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("IsFolder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OwnerUserName")
+                        .IsRequired()
+                        .HasColumnType("varchar(256)");
+
                     b.Property<string>("Path")
-                        .HasColumnType("varchar(256)");
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("UserModelUserName")
-                        .HasColumnType("varchar(256)");
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("Path");
+                    b.HasKey("Id");
 
-                    b.HasIndex("UserModelUserName");
+                    b.HasIndex("OwnerUserName");
 
                     b.ToTable("FileModel");
                 });
@@ -50,9 +62,13 @@ namespace WebFile.BlazorServer.Migrations
 
             modelBuilder.Entity("WebFile.BlazorServer.Data.FileModel", b =>
                 {
-                    b.HasOne("WebFile.BlazorServer.Data.UserModel", null)
+                    b.HasOne("WebFile.BlazorServer.Data.UserModel", "Owner")
                         .WithMany("Files")
-                        .HasForeignKey("UserModelUserName");
+                        .HasForeignKey("OwnerUserName")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("WebFile.BlazorServer.Data.UserModel", b =>

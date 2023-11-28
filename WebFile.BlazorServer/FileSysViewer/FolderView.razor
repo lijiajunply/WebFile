@@ -35,7 +35,7 @@
         }
     </Row>
 
-    <SlideButton class="Slide" Icon="fa-solid fa-plus" Text="上传">
+    <SlideButton class="Slide" Placement="Placement.TopEnd" HeaderText="上传" ShowHeader="true" Icon="fa-solid fa-plus">
         <BodyTemplate>
             <ButtonUpload TValue="string" OnChange="@OnUploadFile"
                           ShowUploadFileList="false" BrowserButtonText="上传文件"
@@ -64,6 +64,6 @@ else
         margin-bottom: 1px;
     }
     .Slide{
-        position:fixed; bottom:0; right: 220px;
+        position:fixed; bottom:0; right: 0;
     }
 </style>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace WebFile.BlazorServer.Data;
+namespace WebFile.Share.Data;
 
 public class WebFileContext : DbContext
 {

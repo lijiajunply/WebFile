@@ -3,8 +3,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using WebFile.Share.Data;
 
-namespace WebFile.BlazorServer.Data;
+namespace WebFile.BlazorServer.Providers;
 
 public class Provider : AuthenticationStateProvider
 {
