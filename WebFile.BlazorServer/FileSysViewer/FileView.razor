@@ -35,12 +35,27 @@
     }
     else
     {
-        <p>该文件目前还无法预览 <a href="">返回主页</a></p>
+        <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="@($"该格式({Path.GetExtension(Model.Path)})的文件目前还无法预览")">
+            <Template>
+                <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
+            </Template>
+        </Empty>
     }
+
+    <Card>
+        <BodyTemplate>
+            <FileIcon Extension=@Path.GetExtension(Model.Path)/>
+            <h5>@Path.GetFileName(Model.Path)</h5>
+        </BodyTemplate>
+    </Card>
 }
 else
 {
-    <p>预览失败 <a href="">返回主页</a></p>
+    <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="暂无数据">
+        <Template>
+            <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
+        </Template>
+    </Empty>
 }
 
 
@@ -49,6 +64,7 @@ else
 
     [Parameter]
     public string? Text { get; set; }
+
     private string Lang { get; set; } = "csharp";
     private bool IsCode { get; set; }
     private FileModel Model { get; set; } = new();
@@ -59,22 +75,21 @@ else
     {
         if (string.IsNullOrEmpty(Text))
         {
-            await Message.Show(new MessageOption() { Content = "无数据，正在为您跳转"});
+            await Message.Show(new MessageOption() { Content = "无数据，正在为您跳转" });
             NavigationManager.NavigateTo("");
             return;
         }
-        
+
         var claims = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
         var user = claims.ToUser();
 
-        if (user == null)
-            return;
-        
+        if (user == null) return;
+
         await base.OnInitializedAsync();
         await using var context = await DbContext.CreateDbContextAsync();
         var model = await context.FileModel.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == Text);
         if (model == null) return;
-        if(!model.Owner.Equals(user))return;
+        if (!model.Owner.Equals(user)) return;
         Model = model;
 
         var ext = Path.GetExtension(Model.Path);

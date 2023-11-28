@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OpenXmlPowerTools;
 
 namespace WebFile.BlazorServer.Data;
 
@@ -34,5 +35,26 @@ public class FolderModel
 
     public string ToUrl()
         => IsFolder ? $"/FolderView/{Id}" : $"/FileView/{Id}";
-    
+}
+
+public class FileInfoModel
+{
+    public string Size { get; set; }
+
+    public FileInfoModel(FolderModel model)
+    {
+        var info = new FileInfo(model.ToUrl());
+        var unit = new[] { "B", "kB", "MB", "GB", "TB" };
+        var i = 0;
+        var l = info.Length;
+        while (true)
+        {
+            if (l / 1024 < 1024)
+                break;
+            l /= 1024;
+            i++;
+        }
+
+        Size = $"{l}{unit[i]}";
+    }
 }

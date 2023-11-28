@@ -3,6 +3,15 @@
 
 @if (IsAuthenticated)
 {
+    <Card>
+        <BodyTemplate>
+            <h2>
+                <i class="fa fa-folder" aria-hidden="true"></i> @Path.GetFileName(Model.Path)
+            </h2>
+            <p>一个共有 @FolderModels.Count 个文件</p>
+        </BodyTemplate>
+    </Card>
+    <Divider/>
     <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
         @foreach (var item in FolderModels)
         {
@@ -38,7 +47,11 @@
 }
 else
 {
-    <p>无数据 <a href="">返回主页</a></p>
+    <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="暂无数据">
+        <Template>
+            <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
+        </Template>
+    </Empty>
 }
 
 <style>
