@@ -34,20 +34,17 @@
     }
     else if (IsCode)
     {
-        @* <Select TValue="string" @bind-Value="@Theme" ShowLabel="true"> *@
-        @*     <Options> *@
-        @*         <SelectOption Text="Visual Studio" Value="vs"></SelectOption> *@
-        @*         <SelectOption Text="Visual Studio Dark" Value="vs-dark"></SelectOption> *@
-        @*         <SelectOption Text="High Contrast Dark" Value="hc-black"></SelectOption> *@
-        @*     </Options> *@
-        @* </Select> *@
-        @* <Divider/> *@
-        @* <CodeEditor Value="@CodeContext" Language="@Lang" Theme="@Theme"/> *@
-        <pre>
-            <code class="@($"language-{Lang}")">
-                @CodeContext
-            </code>
-        </pre>
+        <div class="code">
+            <Select DisplayText="主题" TValue="string" @bind-Value="@Theme" ShowLabel="true">
+                <Options>
+                    <SelectOption Text="Visual Studio" Value="vs"/>
+                    <SelectOption Text="Visual Studio Dark" Value="vs-dark"/>
+                    <SelectOption Text="High Contrast Dark" Value="hc-black"/>
+                </Options>
+            </Select>
+            <Divider/>
+            <CodeEditor IsReadonly="true" Value="@CodeContext" Language="@Lang" Theme="@Theme"/>
+        </div>
     }
     else
     {
@@ -73,6 +70,7 @@ else
 
     [Parameter]
     public string? Text { get; set; }
+
     private string Lang { get; set; } = "csharp";
     private bool IsCode { get; set; }
     private FileModel Model { get; set; } = new();
@@ -161,5 +159,11 @@ else
         }
     }
 
-    public string Theme { get; set; } = "vs-dark";
+    public string Theme { get; set; } = "vs";
 }
+
+<style>
+    .code{
+        margin: 20px;
+    }
+</style>
