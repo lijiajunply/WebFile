@@ -13,7 +13,7 @@
                 <Authorized>
                     <Logout ImageUrl="personal.png" UserName="@context.User.Identity!.Name">
                         <LinkTemplate>
-                            <a href=""><i class="fa-solid fa-suitcase"></i>个人中心</a>
+                            <a href="/Account"><i class="fa-solid fa-suitcase"></i>个人中心</a>
                             <a href="/Account/Setting"><i class="fa-solid fa-cog"></i>设置</a>
                             <LogoutLink/>
                         </LinkTemplate>
@@ -23,7 +23,9 @@
                     <p>正在登录中</p>
                 </Authorizing>
                 <NotAuthorized>
-
+                    <a href="/Account/Login">
+                        <i class="fa fa-sign-in" aria-hidden="true"></i>
+                    </a>
                 </NotAuthorized>
             </AuthorizeView>
 

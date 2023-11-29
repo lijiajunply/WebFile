@@ -10,6 +10,16 @@
 
 @if (!string.IsNullOrEmpty(Model.Path))
 {
+    <Card>
+        <BodyTemplate>
+            <FileIcon Extension=@Path.GetExtension(Model.Path)/>
+            <h5>@Path.GetFileName(Model.Path)</h5>
+            <p>@Info?.Size</p>
+        </BodyTemplate>
+    </Card>
+
+    <Divider/>
+
     @if (Path.GetExtension(Model.Path) == ".pdf")
     {
         <PdfReader FileName="@Model.GetUrl()"/>
@@ -24,15 +34,20 @@
     }
     else if (IsCode)
     {
-        <Select TValue="string" @bind-Value="@Theme" ShowLabel="true">
-            <Options>
-                <SelectOption Text="Visual Studio" Value="vs"></SelectOption>
-                <SelectOption Text="Visual Studio Dark" Value="vs-dark"></SelectOption>
-                <SelectOption Text="High Contrast Dark" Value="hc-black"></SelectOption>
-            </Options>
-        </Select>
-        <Divider/>
-        <CodeEditor Value="@CodeContext" Language="@Lang" Theme="@Theme"/>
+        @* <Select TValue="string" @bind-Value="@Theme" ShowLabel="true"> *@
+        @*     <Options> *@
+        @*         <SelectOption Text="Visual Studio" Value="vs"></SelectOption> *@
+        @*         <SelectOption Text="Visual Studio Dark" Value="vs-dark"></SelectOption> *@
+        @*         <SelectOption Text="High Contrast Dark" Value="hc-black"></SelectOption> *@
+        @*     </Options> *@
+        @* </Select> *@
+        @* <Divider/> *@
+        @* <CodeEditor Value="@CodeContext" Language="@Lang" Theme="@Theme"/> *@
+        <pre>
+            <code class="@($"language-{Lang}")">
+                @CodeContext
+            </code>
+        </pre>
     }
     else
     {
@@ -42,13 +57,6 @@
             </Template>
         </Empty>
     }
-
-    <Card>
-        <BodyTemplate>
-            <FileIcon Extension=@Path.GetExtension(Model.Path)/>
-            <h5>@Path.GetFileName(Model.Path)</h5>
-        </BodyTemplate>
-    </Card>
 }
 else
 {
@@ -65,10 +73,10 @@ else
 
     [Parameter]
     public string? Text { get; set; }
-
     private string Lang { get; set; } = "csharp";
     private bool IsCode { get; set; }
     private FileModel Model { get; set; } = new();
+    private FileInfoModel? Info { get; set; }
     private string? CodeContext { get; set; }
     private string? CodeExtension { get; set; }
 
@@ -80,7 +88,7 @@ else
             NavigationManager.NavigateTo("");
             return;
         }
-        
+
         var claims = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
         var user = claims.ToUser();
 
@@ -92,8 +100,9 @@ else
         if (model == null) return;
         if (!model.Owner.Equals(user)) return;
         Model = model;
+        Info = new FileInfoModel(Model);
 
-        var ext = Path.GetExtension(Model.Path).Replace(".","");
+        var ext = Path.GetExtension(Model.Path).Replace(".", "");
         IsCode = Extensions.Any(x => x == ext);
         if (IsCode)
         {
@@ -103,6 +112,7 @@ else
             reader.Dispose();
             Lang = ExtToLang();
         }
+        StateHasChanged();
     }
 
 
@@ -152,5 +162,4 @@ else
     }
 
     public string Theme { get; set; } = "vs-dark";
-
 }

@@ -49,7 +49,19 @@ public class FileController : ControllerBase
         user.Files.Add(new FileModel() { Path = fileName, Id = pwd, Url = url });
         await _context.SaveChangesAsync();
 
-        return NotFound();
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> AddFolder(FolderAddModel model)
+    {
+        var user = await GetUser();
+        if (user == null) return NotFound();
+        var pwd = $"{user.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{model.Name}".HashEncryption()
+            .Replace("/", "-");
+        user.Files.Add(new FileModel() { Path = model.Name, Id = pwd, Url = model.Url });
+        await _context.SaveChangesAsync();
+        return Ok();
     }
 
     [HttpPost]
@@ -67,6 +79,19 @@ public class FileController : ControllerBase
         };
     }
 
+    [HttpPost]
+    public async Task<ActionResult> DeleteFile(string id)
+    {
+        var user = await GetUser();
+        if (user == null) return NotFound();
+        var model = user.Files.FirstOrDefault(x => x.Id == id);
+        if (model == null) return NotFound();
+
+        _context.Remove(model);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+    
     private async Task<UserModel?> GetUser()
     {
         var userModel = User.GetUser();
@@ -75,4 +100,10 @@ public class FileController : ControllerBase
             .FirstOrDefaultAsync(x => x.Equals(userModel));
         return user;
     }
+}
+
+public class FolderAddModel
+{
+    public string Url { get; set; }
+    public string Name { get; set; }
 }
