@@ -93,8 +93,8 @@ else
         if (!model.Owner.Equals(user)) return;
         Model = model;
 
-        var ext = Path.GetExtension(Model.Path);
-        IsCode = Extensions.Any(x => "." + x == ext);
+        var ext = Path.GetExtension(Model.Path).Replace(".","");
+        IsCode = Extensions.Any(x => x == ext);
         if (IsCode)
         {
             CodeExtension = ext;

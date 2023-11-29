@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.IdentityModel.Tokens;
@@ -65,4 +66,6 @@ public static class TokenHelper
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password)) return default;
         return new UserModel() { UserName = name, Password = password };
     }
+    public static string HashEncryption(this string str)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 }

@@ -34,6 +34,66 @@ public class FolderModel
 
     public string ToUrl()
         => IsFolder ? $"/FolderView/{Id}" : $"/FileView/{Id}";
+
+    public string GetMIME()
+    {
+        var ext = System.IO.Path.GetExtension(Path).Replace(".", "");
+        switch (ext)
+        {
+            case "txt":
+                return "text/plain";
+            case "html":
+            case "css":
+            case "js":
+            case "csv":
+            case "xml":
+                return $"text/{ext}";
+            case ".jpeg":
+            case ".jpg":
+                return "image/jpeg";
+            case "png":
+            case "gif":
+            case "bmp":
+            case "webp":
+                return $"image/{ext}";
+            case "svg":
+                return "image/svg+xml";
+            case "mp3":
+                return "audio/mpeg";
+            case "wav":
+                return "audio/wav";
+            case "mp4":
+            case "ogg":
+            case "webm":
+                return $"video/{ext}";
+            case "mov":
+                return "video/quicktime";
+            case "json":
+            case "pdf":
+            case "zip":
+            case "gzip":
+                return $"application/{ext}";
+            case "bin":
+            case "exe":
+            case "dll":
+            case "class":
+                return "application/octet-stream";
+            case "xls":
+                return "application/vnd.ms-excel";
+            case "xlsx":
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "doc":
+                return "application/msword";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "ppt":
+                return "application/vnd.ms-powerpoint";
+            case "pptx":
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            default:
+                return ext;
+        }
+    }
 }
 
 public class FileInfoModel
