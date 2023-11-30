@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Row = BootstrapBlazor.Components.Row
+@using WebFile.Share.Data
 
 <PageTitle>@(IsAuthenticated ? $"{User.UserName} : 个人中心" : "主页")</PageTitle>
 
@@ -13,9 +14,13 @@
             <a href="@item.ToUrl()">
                 <ContextMenuZone>
                     <ContextMenuTrigger>
-                        <Card IsShadow="true" class="item">
+                        <Card IsCenter="true" IsShadow="true" class="item">
                             <BodyTemplate>
-                                <FileIcon class="custom-icon" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)"/>
+                                <FileIcon style="font-size: 18px" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)">
+                                    <BackgroundTemplate>
+                                        <i class="@item.ToFileIcon()"></i>
+                                    </BackgroundTemplate>
+                                </FileIcon>
                                 <h6>@Path.GetFileNameWithoutExtension(item.Path)</h6>
                             </BodyTemplate>
                         </Card>

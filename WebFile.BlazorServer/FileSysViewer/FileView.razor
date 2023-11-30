@@ -23,7 +23,7 @@
 
     @if (Path.GetExtension(Model.Path) == ".pdf")
     {
-        <PdfReader FileName="@Model.GetUrl()"/>
+        <PdfReader FileName="@Model.GetUrlWithoutWWW()"/>
     }
     else if (Path.GetExtension(Model.Path) == ".docx")
     {
@@ -35,11 +35,11 @@
     }
     else if (Path.GetExtension(Model.Path).IsImage())
     {
-        <ImageViewer Url="@Model.GetUrl()"/>
+        <ImageViewer Url="@Model.GetUrlWithoutWWW()"/>
     }
     else if (Path.GetExtension(Model.Path).IsVideo())
     {
-        <VideoPlayer MineType="@Model.GetMIME()" Url="@Model.GetUrl()" Width="500" Height="380"/>
+        <VideoPlayer MineType="@Model.GetUrlWithoutWWW()" Url="@Model.GetUrl()" Width="500" Height="380"/>
     }
     else if (IsCode)
     {

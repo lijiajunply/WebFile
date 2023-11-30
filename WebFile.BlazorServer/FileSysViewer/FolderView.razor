@@ -1,11 +1,12 @@
 ﻿@page "/FolderView/{Text?}"
+@using WebFile.Share.Data
 
 
 
 @if (IsAuthenticated)
 {
     <PageTitle>@Path.GetFileName(Model.Path)</PageTitle>
-    
+
     <Card>
         <BodyTemplate>
             <h2>
@@ -23,7 +24,11 @@
                     <ContextMenuTrigger>
                         <Card IsShadow="true" class="item">
                             <BodyTemplate>
-                                <FileIcon class="custom-icon" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)"/>
+                                <FileIcon style="font-size: 18px" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)">
+                                    <BackgroundTemplate>
+                                        <i class="@item.ToFileIcon()"></i>
+                                    </BackgroundTemplate>
+                                </FileIcon>
                                 <h6>@Path.GetFileNameWithoutExtension(item.Path)</h6>
                             </BodyTemplate>
                         </Card>
@@ -64,10 +69,6 @@ else
     .item{
         height: 200px;
         width: 200px;
-    }
-    .SlideItem{
-        width: 100%;
-        margin-bottom: 1px;
     }
     .Slide{
         position:fixed; bottom:0; right: 0;
