@@ -23,7 +23,7 @@ public sealed partial class FolderView
     private UserModel User { get; set; } = new();
     private bool IsAuthenticated { get; set; }
     private List<FolderModel> FolderModels { get; set; } = new();
-    private FolderModel Model = new();
+    private FolderModel Model { get; set; } = new();
     private string Url { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
@@ -38,8 +38,8 @@ public sealed partial class FolderView
         var folder = userModel?.Files.FirstOrDefault(x => x.Id == Text);
         if (folder == null) return;
 
-        FolderModels = userModel!.GetFolder(folder.Path);
         Url = folder.Path;
+        FolderModels = userModel!.GetFolder(Url);
         User = user;
         Model = folder.ToFolder();
         IsAuthenticated = true;
@@ -61,47 +61,64 @@ public sealed partial class FolderView
         if (!Directory.Exists(filePath)) Directory.CreateDirectory(filePath);
 
         var fileName = $"{User.UserName}/{Convert.ToBase64String(
-            System.Text.Encoding.Default.GetBytes($"{DateTime.Now:s}{Guid.NewGuid().ToString()}"))}/{arg.OriginFileName}";
+            System.Text.Encoding.Default.GetBytes($"{DateTime.Now:s}{Guid.NewGuid()}"))}/{arg.OriginFileName}";
         var saveFilePath = Path.Combine(filePath, fileName);
 
         if (await arg.SaveToFileAsync(saveFilePath))
         {
-            var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{arg.OriginFileName}".HashEncryption()
+            var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid()}{arg.OriginFileName}".HashEncryption()
                 .Replace("/", "-");
             user.Files.Add(new FileModel() { Path = fileName, Id = pwd, Url = Url });
             await context.SaveChangesAsync();
             await ToastService.Success("上传文件成功");
-            FolderModels = user.GetFolder();
+            FolderModels = user.GetFolder(Url);
             StateHasChanged();
             return;
         }
 
         await ToastService.Error("上传文件", $"保存文件失败 {arg.OriginFileName}");
+        var fileInfo = new FileInfo(saveFilePath);
+        if (fileInfo.Exists) fileInfo.Delete();
+        var dirInfo = new DirectoryInfo(Path.GetDirectoryName(saveFilePath)!);
+        if (dirInfo.Exists) dirInfo.Delete();
     }
 
-    private async Task OnDelete(FolderModel model)
+    private async Task OnDelete(IFile model)
     {
         await using var context = await DbFactory.CreateDbContextAsync();
         var userModel = await context.Users.Include(x => x.Files)
             .FirstOrDefaultAsync(x => x.Equals(User));
         if (userModel == null) return;
-        var file = await context.FileModel.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == model.Id);
-        if (file == null) return;
-        userModel.Files.Remove(file);
-        var fileInfo = new FileInfo($@"{WebHostEnvironment.WebRootPath}\UserFiles\{file.Path}");
-        fileInfo.Delete();
+        var item = userModel.Files.FirstOrDefault(x => x.Id == model.Id);
+        if (item == null) return;
+
+        if (!item.IsFolder)
+        {
+            DeleteFile(item);
+        }
+        else
+        {
+            var list = userModel.Files.Where(x => x.Url == model.Path).ToList();
+            foreach (var t in list.Where(t => t.Id != model.Id))
+            {
+                DeleteFile(t);
+                userModel.Files.Remove(t);
+            }
+        }
+
+        userModel.Files.Remove(item);
         await context.SaveChangesAsync();
-        FolderModels = userModel.GetFolder();
+        FolderModels = userModel.GetFolder(Url);
         StateHasChanged();
     }
 
-    private async Task OnDownload(FolderModel model)
+    private async Task OnDownload(IFile model)
     {
         await DownloadService.DownloadFromStreamAsync(Path.GetFileName(model.Path),
             model.GetStream(WebHostEnvironment.WebRootPath));
     }
 
-    private Color GetIconColor(FolderModel model)
+    private Color GetIconColor(IFile model)
     {
         var i = FolderModels.FindIndex(fileModel => fileModel.Id == model.Id);
         i %= 11;
@@ -130,9 +147,17 @@ public sealed partial class FolderView
 
                 var user = await context.Users.Include(x => x.Files)
                     .FirstOrDefaultAsync(x => x.Equals(User));
+
+
                 if (user == null)
                 {
                     await ToastService.Error("添加文件夹", "添加文件夹失败");
+                    return false;
+                }
+
+                if (user.Files.Any(x => Path.GetFileName(x.Path) == path))
+                {
+                    await ToastService.Error("添加文件夹", "有重名文件夹");
                     return false;
                 }
 
@@ -141,7 +166,7 @@ public sealed partial class FolderView
                 user.Files.Add(new FileModel() { Path = Url + "/" + path, Id = pwd, Url = Url, IsFolder = true });
                 await context.SaveChangesAsync();
                 await ToastService.Success("添加文件夹成功");
-                FolderModels = user.GetFolder();
+                FolderModels = user.GetFolder(Url);
                 StateHasChanged();
                 return true;
             }
@@ -150,18 +175,27 @@ public sealed partial class FolderView
         await DialogService.ShowEditDialog(option);
     }
 
-    private Task OnOpen(FolderModel model)
+    private Task OnOpen(IFile model)
     {
-        NavigationManager.NavigateTo(model.ToWebUrl(),true);
+        NavigationManager.NavigateTo(model.ToWebUrl(), true);
         return Task.CompletedTask;
     }
-    
+
     public async Task GoBack()
     {
         await using var context = await DbFactory.CreateDbContextAsync();
         var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(User));
-        if(user == null)return;
+        if (user == null) return;
         var model = user.Files.FirstOrDefault(x => x.Path == Model.Url);
-        NavigationManager.NavigateTo(model == null?"":model.ToWebUrl(),true);
+        NavigationManager.NavigateTo(model == null ? "" : model.ToWebUrl(), true);
+    }
+
+    private void DeleteFile(IFile file)
+    {
+        var path = $@"{WebHostEnvironment.WebRootPath}\UserFiles\{file.Path}";
+        var fileInfo = new FileInfo(path);
+        fileInfo.Delete();
+        var dirInfo = new DirectoryInfo(Path.GetDirectoryName(path)!);
+        dirInfo.Delete();
     }
 }

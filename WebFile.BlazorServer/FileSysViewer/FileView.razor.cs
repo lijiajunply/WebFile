@@ -48,6 +48,11 @@ public sealed partial class FileView
             CodeContext = await reader.ReadToEndAsync();
             reader.Dispose();
             Lang = ExtToLang();
+        }else if (ext == "txt")
+        {
+            var reader = new StreamReader(new FileStream(Model.Path.GetUrl(), FileMode.Open));
+            CodeContext = await reader.ReadToEndAsync();
+            reader.Dispose();
         }
 
         StateHasChanged();

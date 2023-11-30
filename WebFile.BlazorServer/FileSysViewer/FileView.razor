@@ -56,6 +56,12 @@
             <CodeEditor IsReadonly="true" Value="@CodeContext" Language="@Lang" Theme="@Theme"/>
         </div>
     }
+    else if (Path.GetExtension(Model.Path) == ".txt")
+    {
+        <div class="code">
+            <pre><code>@CodeContext</code></pre>
+        </div>
+    }
     else
     {
         <Card IsCenter="true">

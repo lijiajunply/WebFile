@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using BootstrapBlazor.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
@@ -21,6 +22,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddBootstrapBlazor(options =>
 {
     options.ToastDelay = 2000;
+    options.ToastPlacement = Placement.MiddleEnd;
 });
 
 builder.Services.AddHttpContextAccessor();
