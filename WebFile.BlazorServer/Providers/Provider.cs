@@ -74,7 +74,4 @@ public static class ProviderStatic
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password)) return default;
         return new UserModel() { UserName = name, Password = password };
     }
-    
-    public static string HashEncryption(this string str)
-        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 }

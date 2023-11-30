@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace WebFile.Share.Data;
 
-public class FileModel
+public class FileModel : IFile
 {
     public string Path { get; set; }
     public string Url { get; set; } = "";
@@ -15,13 +17,10 @@ public class FileModel
     [Column(TypeName = "varchar(256)")]
     public string Id { get; set; }
 
-    public string GetUrl() => GetUrl(Path);
-    public static string GetUrl(string path) => $"wwwroot/UserFiles/{path}";
-
     public FolderModel ToFolder() => new() { IsFolder = IsFolder, Path = Path, Url = Url, Id = Id };
 }
 
-public class FolderModel
+public class FolderModel : IFile
 {
     public string Path { get; set; }
     public string Url { get; set; }
@@ -34,10 +33,55 @@ public class FolderModel
 
     public string ToUrl()
         => IsFolder ? $"/FolderView/{Id}" : $"/FileView/{Id}";
+}
 
-    public string GetMIME()
+public class FileInfoModel
+{
+    public string Size { get; set; }
+
+    public FileInfoModel(IFile model)
     {
-        var ext = System.IO.Path.GetExtension(Path).Replace(".", "");
+        var info = new FileInfo(model.GetUrl());
+        var unit = new[] { "B", "kB", "MB", "GB", "TB" };
+        var i = 0;
+        var l = info.Length;
+        while (true)
+        {
+            if (l / 1024 < 1024)
+                break;
+            l /= 1024;
+            i++;
+        }
+
+        Size = $"{l}{unit[i]}";
+    }
+}
+
+public interface IFile
+{
+    public string Path { get; set; }
+    public string Url { get; set; }
+    public string Id { get; set; }
+    public bool IsFolder { get; set; }
+}
+
+public static class FileStatic
+{
+    public static string HashEncryption(this string str)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
+
+    public static bool IsImage(this string s)
+        => s is ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" or ".webp" or ".svg";
+
+    public static bool IsVideo(this string s)
+        => s is ".mp3" or ".wav" or ".mp4" or ".ogg" or ".webm" or ".mov";
+    
+    public static string GetUrl(this string path) => $"wwwroot/UserFiles/{path}";
+    public static string GetUrl(this IFile file) => GetUrl(file.Path);
+
+    public static string GetMIME(this IFile file)
+    {
+        var ext = Path.GetExtension(file.Path).Replace(".", "");
         switch (ext)
         {
             case "txt":
@@ -93,44 +137,5 @@ public class FolderModel
             default:
                 return ext;
         }
-    }
-}
-
-public class FileInfoModel
-{
-    public string Size { get; set; }
-
-    public FileInfoModel(FolderModel model)
-    {
-        var info = new FileInfo(FileModel.GetUrl(model.Path));
-        var unit = new[] { "B", "kB", "MB", "GB", "TB" };
-        var i = 0;
-        var l = info.Length;
-        while (true)
-        {
-            if (l / 1024 < 1024)
-                break;
-            l /= 1024;
-            i++;
-        }
-
-        Size = $"{l}{unit[i]}";
-    }
-
-    public FileInfoModel(FileModel model)
-    {
-        var info = new FileInfo(model.GetUrl());
-        var unit = new[] { "B", "kB", "MB", "GB", "TB" };
-        var i = 0;
-        var l = info.Length;
-        while (true)
-        {
-            if (l / 1024 < 1024)
-                break;
-            l /= 1024;
-            i++;
-        }
-
-        Size = $"{l}{unit[i]}";
     }
 }

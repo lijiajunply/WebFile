@@ -19,6 +19,7 @@
         <PackageReference Include="BootstrapBlazor.FileViewer" Version="8.0.0"/>
         <PackageReference Include="BootstrapBlazor.FontAwesome" Version="8.0.0"/>
         <PackageReference Include="BootstrapBlazor.PdfReader" Version="8.0.0" />
+        <PackageReference Include="BootstrapBlazor.VideoPlayer" Version="8.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -724,6 +725,10 @@
       <_ContentIncludedByDefault Remove="wwwroot\highlight\languages\python-repl.min.js" />
       <_ContentIncludedByDefault Remove="wwwroot\highlight\LICENSE" />
       <_ContentIncludedByDefault Remove="wwwroot\highlight\README.md" />
+      <_ContentIncludedByDefault Remove="wwwroot\UserFiles\李嘉俊\MjAyMy0xMS0yN1QyMzozNzowMmQ0M2Y0Yzc5LWYwNDUtNDBjZS05OTY5LWYxMDE4OTE1OTcwZA==\ColorToBrushConv.cs" />
+      <_ContentIncludedByDefault Remove="wwwroot\UserFiles\李嘉俊\MjAyMy0xMS0yN1QyMzozNzoyOTRiZWNhMWY0LWY2ODktNDlhYy04MGY2LTFmM2NiN2E3MGUyNA==\2023部门考试答案.docx" />
+      <_ContentIncludedByDefault Remove="wwwroot\UserFiles\李嘉俊\MjAyMy0xMS0zMFQxMDo0NDozMDgxMDE2YzU1LTQ5MzktNGZhNy1hYmIxLTJlMTE2ODQ5ZGU3MA==\Image_1700840736630.jpg" />
+      <_ContentIncludedByDefault Remove="wwwroot\UserFiles\李嘉俊\MjAyMy0xMS0zMFQxMToxNjowNWFmYWVmNTYyLTFkM2QtNDQ3Ny05YTNmLTJiMjc2YmQ0MTYyZg==\关于申报第十八届社团文化艺术节活动的通知.docx" />
     </ItemGroup>
 
 </Project>

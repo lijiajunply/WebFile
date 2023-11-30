@@ -1,8 +1,11 @@
 ﻿@page "/FolderView/{Text?}"
 
 
+
 @if (IsAuthenticated)
 {
+    <PageTitle>@Path.GetFileName(Model.Path)</PageTitle>
+    
     <Card>
         <BodyTemplate>
             <h2>
@@ -35,18 +38,21 @@
         }
     </Row>
 
-    <SlideButton class="Slide" Placement="Placement.TopEnd" HeaderText="上传" ShowHeader="true" Icon="fa-solid fa-plus">
+    <SlideButton Placement="Placement.TopEnd" class="Slide" HeaderText="上传" ShowHeader="true" Icon="fa-solid fa-plus">
         <BodyTemplate>
-            <ButtonUpload TValue="string" OnChange="@OnUploadFile"
-                          ShowUploadFileList="false" BrowserButtonText="上传文件"
-                          BrowserButtonIcon="fa-solid fa-cloud-arrow-up" BrowserButtonClass="SlideItem btn-primary">
-            </ButtonUpload>
-            <Button Icon="fa-solid fa-folder" Text="添加新文件夹" OnClick="@OnAddFolder" class="SlideItem"></Button>
+            <Row ItemsPerRow="ItemsPerRow.Three">
+                <ButtonUpload TValue="string" OnChange="@OnUploadFile"
+                              ShowUploadFileList="false" BrowserButtonText=""
+                              BrowserButtonIcon="fa-solid fa-cloud-arrow-up" BrowserButtonClass="btn-primary">
+                </ButtonUpload>
+                <Button Icon="fa-solid fa-folder" OnClick="@OnAddFolder"></Button>
+            </Row>
         </BodyTemplate>
     </SlideButton>
 }
 else
 {
+    <PageTitle>未找到</PageTitle>
     <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="暂无数据">
         <Template>
             <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>

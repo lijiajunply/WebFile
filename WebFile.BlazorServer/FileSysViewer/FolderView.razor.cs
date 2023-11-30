@@ -66,7 +66,8 @@ public sealed partial class FolderView
 
         if (await arg.SaveToFileAsync(saveFilePath, 1012 * 1024, new CancellationTokenSource().Token))
         {
-            var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{arg.OriginFileName}".HashEncryption().Replace("/", "-");
+            var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{arg.OriginFileName}".HashEncryption()
+                .Replace("/", "-");
             user.Files.Add(new FileModel() { Path = fileName, Id = pwd, Url = Url });
             await context.SaveChangesAsync();
             await ToastService.Success("上传文件成功");
@@ -135,8 +136,9 @@ public sealed partial class FolderView
                     return false;
                 }
 
-                var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{path}".HashEncryption().Replace("/", "-");
-                user.Files.Add(new FileModel() { Path = path, Id = pwd, Url = Url, IsFolder = true });
+                var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{path}".HashEncryption()
+                    .Replace("/", "-");
+                user.Files.Add(new FileModel() { Path = Url + "/" + path, Id = pwd, Url = Url, IsFolder = true });
                 await context.SaveChangesAsync();
                 await ToastService.Success("添加文件夹成功");
                 FolderModels = user.GetFolder();

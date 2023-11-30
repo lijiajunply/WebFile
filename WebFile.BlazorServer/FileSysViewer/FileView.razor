@@ -1,7 +1,6 @@
 ﻿@page "/FileView/{Text?}"
 @using WebFile.Share.Data;
 @using Microsoft.EntityFrameworkCore
-@using WebFile.BlazorServer.Providers
 @using Path = System.IO.Path
 @inject IDbContextFactory<WebFileContext> DbContext
 @inject NavigationManager NavigationManager
@@ -10,6 +9,8 @@
 
 @if (!string.IsNullOrEmpty(Model.Path))
 {
+    <PageTitle>@Path.GetFileName(Model.Path)</PageTitle>
+
     <Card>
         <BodyTemplate>
             <FileIcon Extension=@Path.GetExtension(Model.Path)/>
@@ -32,6 +33,14 @@
     {
         <FileViewer Filename="@Model.GetUrl()" IsExcel="true"/>
     }
+    else if (Path.GetExtension(Model.Path).IsImage())
+    {
+        <ImageViewer Url="@Model.GetUrl()"/>
+    }
+    else if (Path.GetExtension(Model.Path).IsVideo())
+    {
+        <VideoPlayer MineType="@Model.GetMIME()" Url="@Model.GetUrl()" Width="500" Height="380"/>
+    }
     else if (IsCode)
     {
         <div class="code">
@@ -48,118 +57,22 @@
     }
     else
     {
-        <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="@($"该格式({Path.GetExtension(Model.Path)})的文件目前还无法预览")">
-            <Template>
-                <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
-            </Template>
-        </Empty>
+        <Card IsCenter="true">
+            <BodyTemplate>
+                <Empty Image="empty.svg" Width="133" Text="@($"该格式({Path.GetExtension(Model.Path)})的文件目前还无法预览")"/>
+                <Button style="text-align: center" OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
+            </BodyTemplate>
+        </Card>
     }
 }
 else
 {
+    <PageTitle>未找到</PageTitle>
     <Empty Image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" Width="133" Text="暂无数据">
         <Template>
             <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
         </Template>
     </Empty>
-}
-
-
-
-@code {
-
-    [Parameter]
-    public string? Text { get; set; }
-
-    private string Lang { get; set; } = "csharp";
-    private bool IsCode { get; set; }
-    private FileModel Model { get; set; } = new();
-    private FileInfoModel? Info { get; set; }
-    private string? CodeContext { get; set; }
-    private string? CodeExtension { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (string.IsNullOrEmpty(Text))
-        {
-            await Message.Show(new MessageOption() { Content = "无数据，正在为您跳转" });
-            NavigationManager.NavigateTo("");
-            return;
-        }
-
-        var claims = (await AuthStateProvider.GetAuthenticationStateAsync()).User;
-        var user = claims.ToUser();
-
-        if (user == null) return;
-
-        await base.OnInitializedAsync();
-        await using var context = await DbContext.CreateDbContextAsync();
-        var model = await context.FileModel.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == Text);
-        if (model == null) return;
-        if (!model.Owner.Equals(user)) return;
-        Model = model;
-        Info = new FileInfoModel(Model);
-
-        var ext = Path.GetExtension(Model.Path).Replace(".", "");
-        IsCode = Extensions.Any(x => x == ext);
-        if (IsCode)
-        {
-            CodeExtension = ext;
-            var reader = new StreamReader(new FileStream(FileModel.GetUrl(Model.Path), FileMode.Open));
-            CodeContext = await reader.ReadToEndAsync();
-            reader.Dispose();
-            Lang = ExtToLang();
-        }
-        StateHasChanged();
-    }
-
-
-    private static string[] Extensions
-        => new[]
-        {
-            "bat", "sh", "c", "cpp", "hpp", "h", "hxx", "go", "rs", "rust", "mm", "swift", "cs", "fs", "vb", "vba",
-            "java", "jsp", "kt", "dart", "groovy", "lua", "js", "ts", "scss", "css", "vue", "html", "py", "py2", "py3",
-            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg", "razor", "cshtml"
-        };
-
-    private string ExtToLang()
-    {
-        switch (CodeExtension)
-        {
-            case "bat":
-            case "sh":
-                return "shell";
-            case "h":
-                return "c";
-            case "hpp":
-                return "cpp";
-            case "rs":
-                return "rust";
-            case "cs":
-                return "csharp";
-            case "fs":
-                return "fsharp";
-            case "kt":
-                return "kotlin";
-            case "js":
-                return "javascript";
-            case "ts":
-                return "typescript";
-            case "py":
-            case "py3":
-                return "python";
-            case "py2":
-                return "python2";
-            case "jl":
-                return "julia";
-            case "axaml":
-                return "xaml";
-            default:
-                return CodeExtension ?? "";
-        }
-    }
-
-    public string Theme { get; set; } = "vs";
 }
 
 <style>

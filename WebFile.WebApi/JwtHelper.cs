@@ -1,6 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.IdentityModel.Tokens;
@@ -44,10 +43,9 @@ public class TokenActionFilter : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        var test = context.HttpContext.Request.Path;
-        string? bearer = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+        var bearer = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
         if (string.IsNullOrEmpty(bearer) || !bearer.Contains("Bearer")) return;
-        string[] jwt = bearer.Split(' ');
+        var jwt = bearer.Split(' ');
         var tokenObj = new JwtSecurityToken(jwt[1]);
 
         var claimsIdentity = new ClaimsIdentity(tokenObj.Claims);
@@ -66,6 +64,4 @@ public static class TokenHelper
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password)) return default;
         return new UserModel() { UserName = name, Password = password };
     }
-    public static string HashEncryption(this string str)
-        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 }

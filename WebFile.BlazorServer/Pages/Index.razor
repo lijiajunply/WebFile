@@ -32,14 +32,13 @@
 
     <SlideButton Placement="Placement.TopEnd" class="Slide" HeaderText="上传" ShowHeader="true" Icon="fa-solid fa-plus">
         <BodyTemplate>
-            <Row ColSpan="4" ItemsPerRow="ItemsPerRow.Three" RowType="RowType.Inline">
+            <Row ItemsPerRow="ItemsPerRow.Three">
                 <ButtonUpload TValue="string" OnChange="@OnUploadFile"
                               ShowUploadFileList="false" BrowserButtonText=""
                               BrowserButtonIcon="fa-solid fa-cloud-arrow-up" BrowserButtonClass="btn-primary">
                 </ButtonUpload>
                 <Button Icon="fa-solid fa-folder" OnClick="@OnAddFolder"></Button>
             </Row>
-
         </BodyTemplate>
     </SlideButton>
 }
@@ -50,9 +49,6 @@ else
     <p>WebFile可以让用户在云端存储、管理、分享、下载各种类型的文件，如文档、图片、音乐、视频等</p>
     <p>具有高速、安全、稳定、易用的特点，用户可以随时随地访问自己的文件，无需担心文件丢失或损坏</p>
     <p>WebFile还支持多平台、多设备的同步，方便用户在不同的场景下使用WebFile</p>
-    @* <NavLink class="nav-link" href="/Account/Login" Match="NavLinkMatch.All"> *@
-    @*     <span class="fa-solid fa-house" aria-hidden="true"></span> Home *@
-    @* </NavLink> *@
 }
 
 <style>
