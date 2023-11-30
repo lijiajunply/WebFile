@@ -12,14 +12,15 @@
             <h2>
                 <i class="fa fa-folder" aria-hidden="true"></i> @Path.GetFileName(Model.Path)
             </h2>
-            <p>一个共有 @FolderModels.Count 个文件</p>
+            <p><Button Color="Color.Link" TooltipText="返回到父级文件夹" IsAsync="true" Icon="fa-solid fa-arrow-left" OnClick="@GoBack"></Button> 一个共有 @FolderModels.Count 个文件</p>
+
         </BodyTemplate>
     </Card>
     <Divider/>
     <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
         @foreach (var item in FolderModels)
         {
-            <a href="@item.ToUrl()">
+            <a href="@item.ToWebUrl()" target="_top">
                 <ContextMenuZone>
                     <ContextMenuTrigger>
                         <Card IsShadow="true" class="item">

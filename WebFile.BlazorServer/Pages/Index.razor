@@ -11,7 +11,7 @@
     <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
         @foreach (var item in FolderModels)
         {
-            <a href="@item.ToUrl()">
+            <a href="@item.ToWebUrl()">
                 <ContextMenuZone>
                     <ContextMenuTrigger>
                         <Card IsCenter="true" IsShadow="true" class="item">

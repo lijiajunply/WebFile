@@ -40,7 +40,7 @@ public sealed partial class FileView
         Info = new FileInfoModel(Model);
 
         var ext = Path.GetExtension(Model.Path).Replace(".", "");
-        IsCode = Extensions.Any(x => x == ext);
+        IsCode = FileBoolStatic.Extensions.Any(x => x == ext);
         if (IsCode)
         {
             CodeExtension = ext;
@@ -52,15 +52,6 @@ public sealed partial class FileView
 
         StateHasChanged();
     }
-
-
-    private static string[] Extensions
-        => new[]
-        {
-            "bat", "sh", "c", "cpp", "hpp", "h", "hxx", "go", "rs", "rust", "mm", "swift", "cs", "fs", "vb", "vba",
-            "java", "jsp", "kt", "dart", "groovy", "lua", "js", "ts", "scss", "css", "vue", "html", "py", "py2", "py3",
-            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg", "razor", "cshtml"
-        };
 
     private string ExtToLang()
     {
@@ -97,5 +88,14 @@ public sealed partial class FileView
             default:
                 return CodeExtension ?? "";
         }
+    }
+
+    public async Task GoBack()
+    {
+        await using var context = await DbContext.CreateDbContextAsync();
+        var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(Model.Owner));
+        if(user == null)return;
+        var model = user.Files.FirstOrDefault(x => x.Path == Model.Url);
+        NavigationManager.NavigateTo(model == null?"":model.ToWebUrl(),true);
     }
 }

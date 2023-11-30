@@ -64,7 +64,7 @@ public sealed partial class FolderView
             System.Text.Encoding.Default.GetBytes($"{DateTime.Now:s}{Guid.NewGuid().ToString()}"))}/{arg.OriginFileName}";
         var saveFilePath = Path.Combine(filePath, fileName);
 
-        if (await arg.SaveToFileAsync(saveFilePath, 1012 * 1024, new CancellationTokenSource().Token))
+        if (await arg.SaveToFileAsync(saveFilePath))
         {
             var pwd = $"{User.UserName}{DateTime.Now:s}{Guid.NewGuid().ToString()}{arg.OriginFileName}".HashEncryption()
                 .Replace("/", "-");
@@ -152,7 +152,16 @@ public sealed partial class FolderView
 
     private Task OnOpen(FolderModel model)
     {
-        NavigationManager.NavigateTo(model.ToUrl());
+        NavigationManager.NavigateTo(model.ToWebUrl(),true);
         return Task.CompletedTask;
+    }
+    
+    public async Task GoBack()
+    {
+        await using var context = await DbFactory.CreateDbContextAsync();
+        var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(User));
+        if(user == null)return;
+        var model = user.Files.FirstOrDefault(x => x.Path == Model.Url);
+        NavigationManager.NavigateTo(model == null?"":model.ToWebUrl(),true);
     }
 }

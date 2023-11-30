@@ -146,7 +146,7 @@ public sealed partial class Index
 
     private Task OnOpen(FolderModel model)
     {
-        NavigationManager.NavigateTo(model.ToUrl());
+        NavigationManager.NavigateTo(model.ToWebUrl());
         return Task.CompletedTask;
     }
 }

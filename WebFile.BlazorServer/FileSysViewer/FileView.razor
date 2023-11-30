@@ -15,7 +15,8 @@
         <BodyTemplate>
             <FileIcon Extension=@Path.GetExtension(Model.Path)/>
             <h5>@Path.GetFileName(Model.Path)</h5>
-            <p>@Info?.Size</p>
+            <p>文件大小: @Info?.Size</p>
+            <Button IsAsync="true" Text="返回" OnClick="@GoBack"></Button>
         </BodyTemplate>
     </Card>
 
@@ -35,7 +36,7 @@
     }
     else if (Path.GetExtension(Model.Path).IsImage())
     {
-        <ImageViewer Url="@Model.GetUrlWithoutWWW()"/>
+        <ImageViewer PreviewList="@(new List<string> { Model.GetUrlWithoutWWW() })" Url="@Model.GetUrlWithoutWWW()"/>
     }
     else if (Path.GetExtension(Model.Path).IsVideo())
     {
@@ -60,7 +61,7 @@
         <Card IsCenter="true">
             <BodyTemplate>
                 <Empty Image="empty.svg" Width="133" Text="@($"该格式({Path.GetExtension(Model.Path)})的文件目前还无法预览")"/>
-                <Button style="text-align: center" OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
+                <Button OnClick="@(() => NavigationManager.NavigateTo(""))">返回主页</Button>
             </BodyTemplate>
         </Card>
     }

@@ -18,7 +18,10 @@ var configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddBootstrapBlazor();
+builder.Services.AddBootstrapBlazor(options =>
+{
+    options.ToastDelay = 2000;
+});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ProtectedSessionStorage>();

@@ -1,0 +1,36 @@
+﻿@page "/AllFile"
+@using WebFile.Share.Data
+
+
+@if (IsAuthenticated)
+{
+    <Row ItemsPerRow="ItemsPerRow.Four" ColSpan="4">
+        @foreach (var item in FolderModels)
+        {
+            <a href="@item.ToWebUrl()" target="_top">
+                <ContextMenuZone>
+                    <ContextMenuTrigger>
+                        <Card IsShadow="true" class="item">
+                            <BodyTemplate>
+                                <FileIcon style="font-size: 18px" IconColor="@GetIconColor(item)" Extension="@Path.GetExtension(item.Path)">
+                                    <BackgroundTemplate>
+                                        <i class="@item.ToFileIcon()"></i>
+                                    </BackgroundTemplate>
+                                </FileIcon>
+                                <h6>@Path.GetFileNameWithoutExtension(item.Path)</h6>
+                            </BodyTemplate>
+                        </Card>
+                    </ContextMenuTrigger>
+                    <ContextMenu>
+                        <ContextMenuItem Icon="fa-solid fa-file" Text="打开" OnClick="@((_, _) => { return OnOpen(item); })"/>
+                        <ContextMenuItem Icon="fa-solid fa-trash" Text="删除" OnClick="@(async (_, _) => await OnDelete(item))"/>
+                        <ContextMenuItem Icon="fa-solid fa-cloud-arrow-down" Text="下载" OnClick="@(async (_, _) => await OnDownload(item))"/>
+                    </ContextMenu>
+                </ContextMenuZone>
+            </a>
+        }
+    </Row>
+}
+else
+{
+}

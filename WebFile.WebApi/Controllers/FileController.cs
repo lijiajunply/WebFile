@@ -69,7 +69,7 @@ public class FileController : ControllerBase
     {
         var user = await GetUser();
         if (user == null) return NotFound();
-        var folder = user.Files.FirstOrDefault(x => x.Id == id)?.ToFolder();
+        var folder = user.Files.FirstOrDefault(x => x.Id == id);
         if (folder == null || folder.IsFolder) return NotFound();
 
         return new FileStreamResult(folder.GetStream(_environment.WebRootPath),
@@ -91,7 +91,7 @@ public class FileController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
-    
+
     private async Task<UserModel?> GetUser()
     {
         var userModel = User.GetUser();
