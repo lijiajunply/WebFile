@@ -34,18 +34,7 @@ public class FileInfoModel
     public FileInfoModel(IFile model)
     {
         var info = new FileInfo(model.GetUrl());
-        var unit = new[] { "B", "kB", "MB", "GB", "TB" };
-        var i = 0;
-        var l = info.Length;
-        while (true)
-        {
-            if (l / 1024 < 1024)
-                break;
-            l /= 1024;
-            i++;
-        }
-
-        Size = $"{l}{unit[i]}";
+        Size = info.FileSize().FileSizeString();
     }
 }
 

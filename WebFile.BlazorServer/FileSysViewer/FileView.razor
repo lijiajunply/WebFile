@@ -26,11 +26,11 @@
     {
         <PdfReader FileName="@Model.GetUrlWithoutWWW()"/>
     }
-    else if (Path.GetExtension(Model.Path) == ".docx")
+    else if (Path.GetExtension(Model.Path) is ".docx" or ".doc")
     {
         <FileViewer Filename="@Model.GetUrl()" IsExcel="false"/>
     }
-    else if (Path.GetExtension(Model.Path) == ".xlsx")
+    else if (Path.GetExtension(Model.Path) is ".xlsx" or ".xls")
     {
         <FileViewer Filename="@Model.GetUrl()" IsExcel="true"/>
     }
@@ -54,12 +54,6 @@
             </Select>
             <Divider/>
             <CodeEditor IsReadonly="true" Value="@CodeContext" Language="@Lang" Theme="@Theme"/>
-        </div>
-    }
-    else if (Path.GetExtension(Model.Path) == ".txt")
-    {
-        <div class="code">
-            <pre><code>@CodeContext</code></pre>
         </div>
     }
     else

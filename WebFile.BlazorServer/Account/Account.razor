@@ -1,2 +1,27 @@
 ﻿@page "/Account"
+
+@code {
+
+}
+
 <h3>个人信息</h3>
+
+@if (IsAuthenticated)
+{
+    <Card >
+        <BodyTemplate>
+            <ValidateForm OnValidSubmit="@ChangeSubmit" Model="@User">
+                <Row ItemsPerRow="ItemsPerRow.One">
+                    <FloatingLabel PlaceHolder="Name" DisplayText="账号" IsGroupBox="true" @bind-Value="@User.UserName" TValue="string"/>
+                    <FloatingLabel PlaceHolder="Password" DisplayText="密码" IsGroupBox="true" TValue="string" @bind-Value="@User.Password" type="password"/>
+                    <Button style="width: 100%"
+                            IsAsync="true" ButtonType="ButtonType.Submit"
+                            Color="Color.Primary" Icon="oi oi-account-login" Text="注册">
+                    </Button>
+                    <Divider/>
+                </Row>
+            </ValidateForm>
+        </BodyTemplate>
+    </Card>
+}
+@Size

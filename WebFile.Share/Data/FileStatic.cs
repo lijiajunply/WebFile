@@ -13,6 +13,32 @@ public static class FileStatic
 
     public static string ToWebUrl(this IFile file)
         => file.IsFolder ? $"/FolderView/{file.Id}" : $"/FileView/{file.Id}";
+
+    public static long FileSize(this FileSystemInfo info)
+    {
+        if (!info.Exists) return 0;
+        return info switch
+        {
+            FileInfo f => f.Length,
+            DirectoryInfo d => d.GetFileSystemInfos().Sum(FileSize),
+            _ => 0
+        };
+    }
+
+    public static string FileSizeString(this long l)
+    {
+        var unit = new[] { "B", "KB", "MB", "GB", "TB" };
+        var i = 0;
+        while (true)
+        {
+            if (l / 1024 < 1024)
+                break;
+            l /= 1024;
+            i++;
+        }
+
+        return $"{l}{unit[i]}";
+    }
 }
 
 public static class FileStringStatic
@@ -96,7 +122,7 @@ public static class FileBoolStatic
         {
             "bat", "sh", "c", "cpp", "hpp", "h", "hxx", "go", "rs", "rust", "mm", "swift", "cs", "fs", "vb", "vba",
             "java", "jsp", "kt", "dart", "groovy", "lua", "js", "ts", "scss", "css", "vue", "html", "py", "py2", "py3",
-            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg", "razor", "cshtml"
+            "jl", "m", "R", "php", "sql", "xml", "yaml", "json", "xaml", "axaml", "svg", "razor", "cshtml", "txt"
         };
 
     public static bool IsImage(this string s)

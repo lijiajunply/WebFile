@@ -4,7 +4,7 @@
 @using WebFile.Share.Data
 @inject IDbContextFactory<WebFileContext> DbFactory
 @inject NavigationManager navigation
-@inject AuthenticationStateProvider authStateProvider
+@inject AuthenticationStateProvider AuthStateProvider
 @inject MessageService MessageService
 
 <Row ItemsPerRow="ItemsPerRow.One">
@@ -46,7 +46,7 @@
             await MessageService.Show(new MessageOption() { Content = "账号密码出错" });
             return;
         }
-        var provider = (Provider)authStateProvider;
+        var provider = (Provider)AuthStateProvider;
         await provider.UpdateAuthState(Model);
         navigation.NavigateTo("", true);
     }
