@@ -14,7 +14,6 @@ using WebFile.Share.Data;
 using WebFile.BlazorServer.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -52,15 +51,18 @@ builder.Services.Configure<HubOptions>(option => option.MaximumReceiveMessageSiz
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-if (builder.Environment.IsDevelopment())
+var sql = Environment.GetEnvironmentVariable("SQL", EnvironmentVariableTarget.Process);
+if (string.IsNullOrEmpty(sql))
 {
     builder.Services.AddDbContextFactory<WebFileContext>(opt =>
-        opt.UseSqlite(configuration.GetConnectionString("SQLite")));
+        opt.UseSqlite("Data Source=Data.db",
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 }
-else if (builder.Environment.IsProduction())
+else
 {
     builder.Services.AddDbContextFactory<WebFileContext>(opt =>
-        opt.UseMySQL(configuration.GetConnectionString("MySQL")!));
+        opt.UseMySQL(sql,
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 }
 
 builder.Services.Configure<WebEncoderOptions>(options =>
