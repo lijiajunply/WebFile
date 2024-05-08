@@ -16,5 +16,6 @@ RUN dotnet publish "WebFile.BlazorServer.csproj" -c Release -o /app/publish /p:U
 
 FROM base AS final
 WORKDIR /app
+ENV SQL=""
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "WebFile.BlazorServer.dll"]
