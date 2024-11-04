@@ -5,24 +5,24 @@ namespace WebFile.Share.Data;
 
 public class FileModel : IFile
 {
-    public string Path { get; set; }
+    public string Path { get; set; } = "";
     public string Url { get; set; } = "";
     public bool IsFolder { get; set; }
 
-    public UserModel Owner { get; set; }
+    public UserModel Owner { get; init; } = new();
 
     [Key]
     [Column(TypeName = "varchar(256)")]
-    public string Id { get; set; }
+    public string Id { get; set; } = "";
 
     public FolderModel ToFolder() => new() { IsFolder = IsFolder, Path = Path, Url = Url, Id = Id };
 }
 
 public class FolderModel : IFile
 {
-    public string Path { get; set; }
-    public string Url { get; set; }
-    public string Id { get; set; }
+    public string Path { get; set; } = "";
+    public string Url { get; set; } = "";
+    public string Id { get; set; } = "";
 
     public bool IsFolder { get; set; }
 }
