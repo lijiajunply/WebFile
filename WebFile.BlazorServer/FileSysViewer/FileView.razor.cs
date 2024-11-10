@@ -9,7 +9,7 @@ namespace WebFile.BlazorServer.FileSysViewer;
 public sealed partial class FileView
 {
     [Parameter] public string? Text { get; set; }
-    public string Theme { get; set; } = "vs";
+    private string Theme { get; set; } = "vs";
     private string Lang { get; set; } = "csharp";
     private bool IsCode { get; set; }
     private FileModel Model { get; set; } = new();
@@ -44,9 +44,7 @@ public sealed partial class FileView
         if (IsCode)
         {
             CodeExtension = ext;
-            var reader = new StreamReader(new FileStream(Model.Path.GetUrl(), FileMode.Open));
-            CodeContext = await reader.ReadToEndAsync();
-            reader.Dispose();
+            CodeContext = await File.ReadAllTextAsync(Model.Path.GetUrl());
             Lang = ExtToLang();
         }
 
@@ -55,42 +53,26 @@ public sealed partial class FileView
 
     private string ExtToLang()
     {
-        switch (CodeExtension)
+        return CodeExtension switch
         {
-            case "bat":
-            case "sh":
-                return "shell";
-            case "h":
-                return "c";
-            case "hpp":
-                return "cpp";
-            case "rs":
-                return "rust";
-            case "cs":
-                return "csharp";
-            case "fs":
-                return "fsharp";
-            case "kt":
-                return "kotlin";
-            case "js":
-                return "javascript";
-            case "ts":
-                return "typescript";
-            case "py":
-            case "py3":
-                return "python";
-            case "py2":
-                return "python2";
-            case "jl":
-                return "julia";
-            case "axaml":
-                return "xaml";
-            default:
-                return CodeExtension ?? "";
-        }
+            "bat" or "sh" => "shell",
+            "h" => "c",
+            "hpp" => "cpp",
+            "rs" => "rust",
+            "cs" => "csharp",
+            "fs" => "fsharp",
+            "kt" => "kotlin",
+            "js" => "javascript",
+            "ts" => "typescript",
+            "py" or "py3" => "python",
+            "py2" => "python2",
+            "jl" => "julia",
+            "axaml" => "xaml",
+            _ => CodeExtension ?? ""
+        };
     }
 
-    public async Task GoBack()
+    private async Task GoBack()
     {
         await using var context = await DbContext.CreateDbContextAsync();
         var user = await context.Users.Include(x => x.Files).FirstOrDefaultAsync(x => x.Equals(Model.Owner));
